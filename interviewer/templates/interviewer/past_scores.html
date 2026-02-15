@@ -6,19 +6,19 @@
     <title>Past Scores Dashboard</title>
     <style>
         :root {
-            --bg-1: #f0f6ff;
-            --bg-2: #f8f9fc;
+            --bg-1: #eaf2fc;
+            --bg-2: #f6f9fe;
             --card: #ffffff;
-            --text: #1d2e40;
-            --muted: #60758a;
-            --line: #d9e3ef;
-            --good: #2e9c4b;
-            --mid: #e2a01a;
-            --bad: #d94a45;
-            --c1: #2f7fd8;
-            --c2: #26a69a;
-            --c3: #f39c3d;
-            --c4: #7d67d8;
+            --text: #1b2f45;
+            --muted: #5f7389;
+            --line: #d4e0ee;
+            --good: #1f4f82;
+            --mid: #3f73ab;
+            --bad: #87afd8;
+            --c1: #0f3d69;
+            --c2: #1a558f;
+            --c3: #2f6fae;
+            --c4: #4f8bc6;
         }
 
         * {
@@ -27,7 +27,7 @@
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, sans-serif;
+            font-family: "Trebuchet MS", "Segoe UI", Tahoma, sans-serif;
             color: var(--text);
             background: linear-gradient(140deg, var(--bg-1) 0%, var(--bg-2) 100%);
         }
@@ -46,9 +46,17 @@
             margin-bottom: 16px;
         }
 
+        .head-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
         .title {
             margin: 0;
             font-size: 28px;
+            font-family: Georgia, "Times New Roman", serif;
+            letter-spacing: 0.2px;
         }
 
         .sub {
@@ -59,11 +67,21 @@
 
         .btn {
             text-decoration: none;
-            background: #103152;
+            background: #173f69;
             color: #fff;
             padding: 10px 14px;
             border-radius: 10px;
             font-weight: 700;
+        }
+
+        .logout-btn {
+            background: #1b4f84;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 14px;
+            font-weight: 700;
+            cursor: pointer;
         }
 
         .grid {
@@ -91,10 +109,10 @@
             font-weight: 800;
         }
 
-        .c1 { background: linear-gradient(145deg, #2f7fd8, #5b9ee8); }
-        .c2 { background: linear-gradient(145deg, #26a69a, #4fc0b6); }
-        .c3 { background: linear-gradient(145deg, #f39c3d, #f7b05f); }
-        .c4 { background: linear-gradient(145deg, #7d67d8, #9a88e8); }
+        .c1 { background: linear-gradient(145deg, #174676, #2f6396); }
+        .c2 { background: linear-gradient(145deg, #2a6da9, #4a86bf); }
+        .c3 { background: linear-gradient(145deg, #3c7fbb, #5a98cf); }
+        .c4 { background: linear-gradient(145deg, #5390c8, #74abd9); }
 
         .panel {
             background: var(--card);
@@ -102,7 +120,7 @@
             border-radius: 12px;
             padding: 14px;
             margin-bottom: 14px;
-            box-shadow: 0 10px 20px rgba(20, 45, 70, 0.07);
+            box-shadow: 0 10px 20px rgba(20, 45, 70, 0.06);
         }
 
         .panel h2 {
@@ -127,9 +145,9 @@
             width: 100%;
             height: 20px;
             border-radius: 999px;
-            background: #ecf1f6;
+            background: #e9f0f8;
             overflow: hidden;
-            border: 1px solid #dde6f0;
+            border: 1px solid #d4dfeb;
         }
 
         .fill {
@@ -139,7 +157,7 @@
 
         .score {
             font-weight: 700;
-            color: #244761;
+            color: #244d74;
         }
 
         .weak-grid {
@@ -149,20 +167,20 @@
         }
 
         .weak-card {
-            border: 1px solid #f0d4d2;
-            background: #fff8f8;
+            border: 1px solid #cfe0f1;
+            background: #f5f9fe;
             border-radius: 10px;
             padding: 12px;
         }
 
         .weak-card h3 {
             margin: 0 0 8px;
-            color: #8a2f2b;
+            color: #1f4f82;
         }
 
         .weak-note {
             margin: 6px 0 0;
-            color: #945450;
+            color: #4a6785;
             font-size: 14px;
         }
 
@@ -189,7 +207,13 @@
             <h1 class="title">Past Scores Dashboard</h1>
             <p class="sub">Color dashboard with topic bar graph and weak-area analysis</p>
         </div>
-        <a href="/" class="btn">Back To Interview</a>
+        <div class="head-actions">
+            <a href="/" class="btn">Back To Interview</a>
+            <form method="post" action="/logout/">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
     </div>
 
     <div class="grid">

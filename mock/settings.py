@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,6 +27,17 @@ SECRET_KEY = 'django-insecure-jj5$xd+w$&zvscpgh1y_u_y$2qk!ayvj%)+dlbfs7$%)uey6xg
 DEBUG = True
 
 ALLOWED_HOSTS = []
+
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://0.0.0.0:8000",
+    "http://[::1]:8000",
+]
+if os.environ.get("CSRF_TRUSTED_ORIGINS"):
+    CSRF_TRUSTED_ORIGINS.extend(
+        [origin.strip() for origin in os.environ["CSRF_TRUSTED_ORIGINS"].split(",") if origin.strip()]
+    )
 
 
 # Application definition
@@ -73,12 +85,31 @@ WSGI_APPLICATION = 'mock.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+DB_NAME = os.environ.get("DB_NAME", "").strip()
+DB_USER = os.environ.get("DB_USER", "").strip()
+DB_PASSWORD = os.environ.get("DB_PASSWORD", "").strip()
+DB_HOST = os.environ.get("DB_HOST", "").strip()
+DB_PORT = os.environ.get("DB_PORT", "5432").strip()
+
+if all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": DB_NAME,
+            "USER": DB_USER,
+            "PASSWORD": DB_PASSWORD,
+            "HOST": DB_HOST,
+            "PORT": DB_PORT,
+            "OPTIONS": {"sslmode": "require"},
+        }
     }
-}
+else:
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 
 # Password validation

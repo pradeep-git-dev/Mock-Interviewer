@@ -6,14 +6,14 @@
     <title>Mock Interviewer</title>
     <style>
         :root {
-            --bg: #f3f5f8;
-            --panel: #0d2238;
-            --panel-soft: #173959;
+            --bg: #eef4fb;
+            --panel: #0f2742;
+            --panel-soft: #173a60;
             --card: #ffffff;
-            --accent: #1261a8;
-            --text: #162433;
-            --muted: #607080;
-            --border: #d9e1ea;
+            --accent: #1d5d9e;
+            --text: #1a2b3d;
+            --muted: #5f7288;
+            --border: #d3deea;
         }
 
         * {
@@ -24,7 +24,7 @@
             margin: 0;
             font-family: "Segoe UI", Tahoma, sans-serif;
             color: var(--text);
-            background: linear-gradient(160deg, #eef2f6 0%, #f9fbfd 100%);
+            background: linear-gradient(165deg, #eaf2fb 0%, #f6f9fd 100%);
         }
 
         .layout {
@@ -35,7 +35,7 @@
         .sidebar {
             width: 300px;
             background: linear-gradient(180deg, var(--panel) 0%, var(--panel-soft) 100%);
-            color: #ecf4ff;
+            color: #e9f2ff;
             padding: 22px 18px;
             display: flex;
             flex-direction: column;
@@ -49,15 +49,15 @@
 
         .side-note {
             margin: 0;
-            color: #c2d6ed;
+            color: #bdd3ea;
             font-size: 14px;
             line-height: 1.45;
         }
 
         .side-btn {
-            border: 1px solid #91b4d6;
+            border: 1px solid #84a8cc;
             background: transparent;
-            color: #eef6ff;
+            color: #edf5ff;
             border-radius: 10px;
             padding: 10px 12px;
             font-weight: 700;
@@ -66,9 +66,9 @@
         }
 
         .side-btn.primary {
-            background: #f0f6ff;
-            color: #0f2e4b;
-            border-color: #f0f6ff;
+            background: #e8f1fd;
+            color: #133b63;
+            border-color: #e8f1fd;
         }
 
         .main {
@@ -76,12 +76,40 @@
             padding: 22px;
         }
 
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .user-badge {
+            background: #e7f0fc;
+            color: #1b4f84;
+            border: 1px solid #2f679d;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .logout-btn {
+            background: #1b4f84;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         .card {
             background: var(--card);
             border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
-            box-shadow: 0 14px 28px rgba(30, 60, 90, 0.08);
+            box-shadow: 0 12px 24px rgba(22, 52, 86, 0.08);
         }
 
         .meta {
@@ -91,13 +119,13 @@
 
         #progress {
             margin-bottom: 12px;
-            color: #2d4358;
+            color: #294661;
             font-weight: 600;
         }
 
         .question-box {
-            background: #f7fbff;
-            border: 1px solid #d8e6f5;
+            background: #f6faff;
+            border: 1px solid #d2e2f3;
             border-left: 5px solid var(--accent);
             border-radius: 10px;
             padding: 14px;
@@ -111,8 +139,8 @@
             margin-bottom: 8px;
             padding: 4px 8px;
             border-radius: 999px;
-            background: #deecfb;
-            color: #0f4f90;
+            background: #dceafe;
+            color: #1a5488;
         }
 
         .controls {
@@ -136,8 +164,8 @@
         }
 
         .secondary {
-            background: #dde9f7;
-            color: #133b62;
+            background: #e3edf9;
+            color: #1a4a79;
         }
 
         button:disabled {
@@ -148,7 +176,7 @@
         textarea {
             width: 100%;
             min-height: 140px;
-            border: 1px solid #c9d7e6;
+            border: 1px solid #c8d8ea;
             border-radius: 10px;
             padding: 11px;
             font-size: 15px;
@@ -157,9 +185,9 @@
 
         .panel {
             margin-top: 16px;
-            border: 1px solid #e2e8ef;
+            border: 1px solid #d8e4f0;
             border-radius: 10px;
-            background: #fafcff;
+            background: #f8fbff;
             padding: 12px;
         }
 
@@ -175,7 +203,7 @@
 
         .panel li {
             margin-bottom: 6px;
-            color: #27445f;
+            color: #2a4f72;
         }
 
         @media (max-width: 900px) {
@@ -200,6 +228,13 @@
     </aside>
 
     <main class="main">
+        <div class="topbar">
+            <span class="user-badge">{{ display_name }}</span>
+            <form method="post" action="/logout/">
+                {% csrf_token %}
+                <button type="submit" class="logout-btn">Logout</button>
+            </form>
+        </div>
         <div class="card">
             <div id="progress">Press "Start Interview" to begin.</div>
 
@@ -264,6 +299,15 @@
         window.speechSynthesis.speak(utterance);
     }
 
+    function getCookie(name) {
+        const cookieValue = `; ${document.cookie}`;
+        const parts = cookieValue.split(`; ${name}=`);
+        if (parts.length === 2) {
+            return parts.pop().split(";").shift();
+        }
+        return "";
+    }
+
     function renderFinalReport(report) {
         const topicRows = Object.entries(report.topic_breakdown)
             .map(([topic, info]) => `<li><strong>${topic}</strong>: score ${info.average}/10 across ${info.count} question(s). Feedback: ${info.feedback}</li>`)
@@ -320,9 +364,13 @@
     submitBtn.addEventListener("click", async () => {
         try {
             const answer = answerBox.value.trim();
+            const csrfToken = getCookie("csrftoken");
             const res = await fetch("/api/answer/", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken,
+                },
                 body: JSON.stringify({ answer }),
             });
             if (!res.ok) throw new Error(`Submit failed (${res.status})`);
