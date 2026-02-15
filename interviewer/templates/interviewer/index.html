@@ -1,56 +1,118 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Mock Interviewer</title>
+    <title>Mock Interviewer</title>
     <style>
         :root {
-            --bg: #f4f7fb;
+            --bg: #f3f5f8;
+            --panel: #0d2238;
+            --panel-soft: #173959;
             --card: #ffffff;
-            --accent: #1565c0;
-            --text: #17212b;
-            --muted: #6b7785;
-            --good: #1b8a3e;
-            --warn: #c77f00;
+            --accent: #1261a8;
+            --text: #162433;
+            --muted: #607080;
+            --border: #d9e1ea;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background: radial-gradient(circle at top left, #e9f2ff, #f7fafc 55%);
+            font-family: "Segoe UI", Tahoma, sans-serif;
             color: var(--text);
+            background: linear-gradient(160deg, #eef2f6 0%, #f9fbfd 100%);
         }
 
-        .container {
-            max-width: 900px;
-            margin: 24px auto;
-            padding: 0 16px;
+        .layout {
+            min-height: 100vh;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 300px;
+            background: linear-gradient(180deg, var(--panel) 0%, var(--panel-soft) 100%);
+            color: #ecf4ff;
+            padding: 22px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .sidebar h1 {
+            font-size: 22px;
+            margin: 0;
+        }
+
+        .side-note {
+            margin: 0;
+            color: #c2d6ed;
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .side-btn {
+            border: 1px solid #91b4d6;
+            background: transparent;
+            color: #eef6ff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-weight: 700;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .side-btn.primary {
+            background: #f0f6ff;
+            color: #0f2e4b;
+            border-color: #f0f6ff;
+        }
+
+        .main {
+            flex: 1;
+            padding: 22px;
         }
 
         .card {
             background: var(--card);
+            border: 1px solid var(--border);
             border-radius: 14px;
             padding: 20px;
-            box-shadow: 0 12px 24px rgba(24, 39, 75, 0.08);
+            box-shadow: 0 14px 28px rgba(30, 60, 90, 0.08);
         }
 
-        h1 {
-            margin: 0 0 8px;
-            color: #0f4c91;
-        }
-
-        .muted {
+        .meta {
+            margin: 0 0 16px;
             color: var(--muted);
-            margin-bottom: 16px;
+        }
+
+        #progress {
+            margin-bottom: 12px;
+            color: #2d4358;
+            font-weight: 600;
         }
 
         .question-box {
+            background: #f7fbff;
+            border: 1px solid #d8e6f5;
+            border-left: 5px solid var(--accent);
+            border-radius: 10px;
             padding: 14px;
-            border-left: 4px solid var(--accent);
-            background: #f6faff;
-            border-radius: 8px;
             margin-bottom: 14px;
+        }
+
+        .topic-chip {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #deecfb;
+            color: #0f4f90;
         }
 
         .controls {
@@ -62,94 +124,106 @@
 
         button {
             border: none;
-            border-radius: 8px;
+            border-radius: 9px;
             padding: 10px 14px;
             cursor: pointer;
-            font-weight: 600;
+            font-weight: 700;
         }
 
-        button.primary {
+        .primary {
             background: var(--accent);
             color: #fff;
         }
 
-        button.secondary {
-            background: #dbe8f7;
-            color: #173a63;
+        .secondary {
+            background: #dde9f7;
+            color: #133b62;
         }
 
         button:disabled {
+            opacity: 0.55;
             cursor: not-allowed;
-            opacity: 0.5;
         }
 
         textarea {
             width: 100%;
             min-height: 140px;
-            border-radius: 8px;
-            border: 1px solid #ccd8e6;
-            padding: 10px;
+            border: 1px solid #c9d7e6;
+            border-radius: 10px;
+            padding: 11px;
             font-size: 15px;
-            box-sizing: border-box;
+            resize: vertical;
         }
 
-        .feedback {
-            margin-top: 12px;
-            padding: 10px;
-            border-radius: 8px;
-            background: #f4f9f5;
-            border: 1px solid #cde8d5;
-        }
-
-        .report {
+        .panel {
             margin-top: 16px;
+            border: 1px solid #e2e8ef;
+            border-radius: 10px;
+            background: #fafcff;
             padding: 12px;
-            border-radius: 8px;
-            background: #fffdf5;
-            border: 1px solid #f0e4b8;
         }
 
-        .topic-chip {
-            display: inline-block;
-            font-size: 12px;
-            font-weight: 700;
-            color: #0d549d;
-            background: #e8f2ff;
-            padding: 4px 8px;
-            border-radius: 999px;
-            margin-right: 6px;
+        .panel h3 {
+            margin: 0 0 8px;
+            font-size: 16px;
+        }
+
+        .panel ul {
+            margin: 8px 0 0;
+            padding-left: 18px;
+        }
+
+        .panel li {
+            margin-bottom: 6px;
+            color: #27445f;
+        }
+
+        @media (max-width: 900px) {
+            .layout {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="card">
-        <h1>Voice Mock Interviewer</h1>
-        <div class="muted">25 questions | Topics: {{ topics }}</div>
+<div class="layout">
+    <aside class="sidebar">
+        <h1>Mock Interviewer</h1>
+        <p class="side-note">Question bank: {{ question_bank_size }} questions<br>Interview run: {{ total_questions }} questions</p>
+        <button id="startBtn" class="side-btn primary">Start Interview</button>
+        <button id="historyBtn" class="side-btn">View Past Scores & Feedback</button>
+        <p class="side-note">Topics covered: {{ topics }}</p>
+    </aside>
 
-        <div id="progress" class="muted">Press Start to begin.</div>
+    <main class="main">
+        <div class="card">
+            <div id="progress">Press "Start Interview" to begin.</div>
 
-        <div class="question-box">
-            <span id="topic" class="topic-chip">-</span>
-            <div id="question">Question will appear here.</div>
+            <div class="question-box">
+                <div id="topic" class="topic-chip">-</div>
+                <div id="question">Question will appear here.</div>
+            </div>
+
+            <div class="controls">
+                <button class="secondary" id="speakBtn" disabled>Speak Question</button>
+                <button class="secondary" id="recordBtn" disabled>Start Voice Input</button>
+                <button class="primary" id="submitBtn" disabled>Submit Answer</button>
+            </div>
+
+            <textarea id="answer" placeholder="Type or dictate your answer..."></textarea>
+
+            <div id="report" class="panel" style="display:none"></div>
         </div>
-
-        <div class="controls">
-            <button class="primary" id="startBtn">Start Interview</button>
-            <button class="secondary" id="speakBtn" disabled>Speak Question</button>
-            <button class="secondary" id="recordBtn" disabled>Start Voice Input</button>
-            <button class="primary" id="submitBtn" disabled>Submit Answer</button>
-        </div>
-
-        <textarea id="answer" placeholder="Your transcribed answer appears here..."></textarea>
-
-        <div id="feedback" class="feedback" style="display:none"></div>
-        <div id="report" class="report" style="display:none"></div>
-    </div>
+    </main>
 </div>
 
 <script>
     const startBtn = document.getElementById("startBtn");
+    const historyBtn = document.getElementById("historyBtn");
     const speakBtn = document.getElementById("speakBtn");
     const recordBtn = document.getElementById("recordBtn");
     const submitBtn = document.getElementById("submitBtn");
@@ -157,11 +231,11 @@
     const questionEl = document.getElementById("question");
     const topicEl = document.getElementById("topic");
     const progressEl = document.getElementById("progress");
-    const feedbackEl = document.getElementById("feedback");
     const reportEl = document.getElementById("report");
 
     let currentQuestion = null;
     let recognition = null;
+    let totalQuestions = 25;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -169,70 +243,72 @@
         recognition.lang = "en-US";
         recognition.interimResults = false;
         recognition.maxAlternatives = 1;
-
         recognition.onresult = (event) => {
-            const text = event.results[0][0].transcript;
-            answerBox.value = text;
+            answerBox.value = event.results[0][0].transcript;
         };
-
         recognition.onerror = () => {
-            progressEl.textContent = "Voice capture failed. You can still type your answer.";
+            progressEl.textContent = "Voice capture failed. You can type your answer.";
+            recordBtn.textContent = "Start Voice Input";
         };
-
         recognition.onend = () => {
             recordBtn.textContent = "Start Voice Input";
         };
     } else {
         recordBtn.disabled = true;
-        progressEl.textContent = "Speech recognition is not supported in this browser.";
     }
 
     function speak(text) {
-        if (!window.speechSynthesis) {
-            return;
-        }
-        const utter = new SpeechSynthesisUtterance(text);
-        utter.rate = 1;
-        utter.pitch = 1;
+        if (!window.speechSynthesis || !text) return;
+        const utterance = new SpeechSynthesisUtterance(text);
         window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utter);
+        window.speechSynthesis.speak(utterance);
+    }
+
+    function renderFinalReport(report) {
+        const topicRows = Object.entries(report.topic_breakdown)
+            .map(([topic, info]) => `<li><strong>${topic}</strong>: score ${info.average}/10 across ${info.count} question(s). Feedback: ${info.feedback}</li>`)
+            .join("");
+
+        reportEl.innerHTML = `
+            <h3>Final Interview Report</h3>
+            <div><strong>Overall Score:</strong> ${report.overall_score}/10</div>
+            <div><strong>Overall Feedback:</strong> ${report.overall_feedback}</div>
+            <ul>${topicRows}</ul>
+        `;
+        reportEl.style.display = "block";
     }
 
     function showQuestion(payload) {
         currentQuestion = payload.question;
+        totalQuestions = payload.total_questions || totalQuestions;
         questionEl.textContent = currentQuestion.prompt;
         topicEl.textContent = currentQuestion.topic;
-        progressEl.textContent = `Question ${payload.question_index} of ${payload.total_questions || 25}`;
+        progressEl.textContent = `Question ${payload.question_index} of ${totalQuestions}`;
+        answerBox.value = "";
         speakBtn.disabled = false;
         recordBtn.disabled = !recognition;
         submitBtn.disabled = false;
-        answerBox.value = "";
-        speak(currentQuestion.prompt);
     }
 
     startBtn.addEventListener("click", async () => {
         try {
             const res = await fetch("/api/start/");
-            if (!res.ok) {
-                throw new Error(`Start failed (${res.status})`);
-            }
+            if (!res.ok) throw new Error(`Start failed (${res.status})`);
             const data = await res.json();
-            if (!data.question) {
-                throw new Error("Start response did not include a question.");
-            }
-            feedbackEl.style.display = "none";
             reportEl.style.display = "none";
-            startBtn.disabled = true;
             showQuestion(data);
+            speak(data.question.prompt);
         } catch (error) {
             progressEl.textContent = `Unable to start interview: ${error.message}`;
         }
     });
 
+    historyBtn.addEventListener("click", () => {
+        window.location.href = "/past-scores/";
+    });
+
     speakBtn.addEventListener("click", () => {
-        if (currentQuestion) {
-            speak(currentQuestion.prompt);
-        }
+        if (currentQuestion) speak(currentQuestion.prompt);
     });
 
     recordBtn.addEventListener("click", () => {
@@ -249,40 +325,20 @@
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ answer }),
             });
-
-            if (!res.ok) {
-                throw new Error(`Submit failed (${res.status})`);
-            }
+            if (!res.ok) throw new Error(`Submit failed (${res.status})`);
 
             const data = await res.json();
-            feedbackEl.style.display = "block";
-
-            if (data.evaluation) {
-                feedbackEl.innerHTML = `<strong>Score:</strong> ${data.evaluation.score}/10<br><strong>Feedback:</strong> ${data.evaluation.feedback}`;
-            }
-
             if (data.finished) {
                 submitBtn.disabled = true;
                 speakBtn.disabled = true;
                 recordBtn.disabled = true;
-                startBtn.disabled = false;
-                progressEl.textContent = "Interview finished.";
-
-                const rows = Object.entries(data.report.topic_breakdown)
-                    .map(([topic, info]) => `<li>${topic}: avg ${info.average} (${info.count} questions)</li>`)
-                    .join("");
-
-                reportEl.style.display = "block";
-                reportEl.innerHTML = `<strong>Overall Score:</strong> ${data.report.overall_score}/10<br><strong>Summary:</strong> ${data.report.overall_feedback}<br><ul>${rows}</ul>`;
+                progressEl.textContent = "Interview finished. Final feedback is now available.";
+                renderFinalReport(data.report);
                 speak(`Interview completed. Your overall score is ${data.report.overall_score} out of ten.`);
                 return;
             }
 
-            showQuestion({
-                question_index: data.question_index,
-                total_questions: 25,
-                question: data.question,
-            });
+            showQuestion(data);
         } catch (error) {
             progressEl.textContent = `Unable to submit answer: ${error.message}`;
         }

@@ -1,7 +1,8 @@
-﻿import json
+import json
 
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
@@ -9,6 +10,7 @@ from .logic import InterviewSession
 from .questions import get_question_bank, get_question_topics
 
 SESSION_KEY = "interview_state"
+HISTORY_KEY = "interview_history"
 
 
 def _serialize_question(question):
@@ -31,10 +33,16 @@ def _save_session(request: HttpRequest, session: InterviewSession) -> None:
 @require_GET
 def index(request: HttpRequest):
     context = {
-        "total_questions": len(get_question_bank()),
+        "total_questions": 25,
         "topics": ", ".join(get_question_topics()),
+        "question_bank_size": len(get_question_bank()),
     }
     return render(request, "interviewer/index.html", context)
+
+
+@require_GET
+def past_scores_page(request: HttpRequest):
+    return render(request, "interviewer/past_scores.html")
 
 
 @require_GET
@@ -66,15 +74,25 @@ def submit_answer(request: HttpRequest):
         return HttpResponseBadRequest("Invalid JSON payload")
 
     answer = str(payload.get("answer", "")).strip()
-    evaluation = session.save_response(answer)
+    session.save_response(answer)
 
     if session.is_finished():
         _save_session(request, session)
         report = session.final_report()
+
+        history = list(request.session.get(HISTORY_KEY, []))
+        history.insert(
+            0,
+            {
+                "completed_at": timezone.now().isoformat(),
+                "report": report,
+            },
+        )
+        request.session[HISTORY_KEY] = history[:20]
+        request.session.modified = True
         return JsonResponse(
             {
                 "finished": True,
-                "evaluation": evaluation,
                 "report": report,
             }
         )
@@ -84,8 +102,14 @@ def submit_answer(request: HttpRequest):
     return JsonResponse(
         {
             "finished": False,
-            "evaluation": evaluation,
             "question_index": session.index + 1,
+            "total_questions": len(session.questions),
             "question": _serialize_question(next_question),
         }
     )
+
+
+@require_GET
+def interview_history(request: HttpRequest):
+    history = list(request.session.get(HISTORY_KEY, []))
+    return JsonResponse({"history": history})

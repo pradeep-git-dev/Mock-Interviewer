@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Past Scores Dashboard</title>
+    <style>
+        :root {
+            --bg-1: #f0f6ff;
+            --bg-2: #f8f9fc;
+            --card: #ffffff;
+            --text: #1d2e40;
+            --muted: #60758a;
+            --line: #d9e3ef;
+            --good: #2e9c4b;
+            --mid: #e2a01a;
+            --bad: #d94a45;
+            --c1: #2f7fd8;
+            --c2: #26a69a;
+            --c3: #f39c3d;
+            --c4: #7d67d8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+            color: var(--text);
+            background: linear-gradient(140deg, var(--bg-1) 0%, var(--bg-2) 100%);
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 24px auto;
+            padding: 0 16px 24px;
+        }
+
+        .head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            margin: 0;
+            font-size: 28px;
+        }
+
+        .sub {
+            margin: 4px 0 0;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .btn {
+            text-decoration: none;
+            background: #103152;
+            color: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .stat {
+            border-radius: 12px;
+            color: #fff;
+            padding: 14px;
+        }
+
+        .stat h3 {
+            margin: 0;
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .stat .v {
+            margin-top: 8px;
+            font-size: 28px;
+            font-weight: 800;
+        }
+
+        .c1 { background: linear-gradient(145deg, #2f7fd8, #5b9ee8); }
+        .c2 { background: linear-gradient(145deg, #26a69a, #4fc0b6); }
+        .c3 { background: linear-gradient(145deg, #f39c3d, #f7b05f); }
+        .c4 { background: linear-gradient(145deg, #7d67d8, #9a88e8); }
+
+        .panel {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 14px;
+            box-shadow: 0 10px 20px rgba(20, 45, 70, 0.07);
+        }
+
+        .panel h2 {
+            margin: 0 0 10px;
+            font-size: 18px;
+        }
+
+        .bars {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 110px 1fr 55px;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .track {
+            width: 100%;
+            height: 20px;
+            border-radius: 999px;
+            background: #ecf1f6;
+            overflow: hidden;
+            border: 1px solid #dde6f0;
+        }
+
+        .fill {
+            height: 100%;
+            border-radius: 999px;
+        }
+
+        .score {
+            font-weight: 700;
+            color: #244761;
+        }
+
+        .weak-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .weak-card {
+            border: 1px solid #f0d4d2;
+            background: #fff8f8;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .weak-card h3 {
+            margin: 0 0 8px;
+            color: #8a2f2b;
+        }
+
+        .weak-note {
+            margin: 6px 0 0;
+            color: #945450;
+            font-size: 14px;
+        }
+
+        .empty {
+            color: var(--muted);
+            font-weight: 600;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: repeat(2, minmax(140px, 1fr));
+            }
+
+            .weak-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="head">
+        <div>
+            <h1 class="title">Past Scores Dashboard</h1>
+            <p class="sub">Color dashboard with topic bar graph and weak-area analysis</p>
+        </div>
+        <a href="/" class="btn">Back To Interview</a>
+    </div>
+
+    <div class="grid">
+        <div class="stat c1">
+            <h3>Total Attempts</h3>
+            <div id="attemptsValue" class="v">0</div>
+        </div>
+        <div class="stat c2">
+            <h3>Latest Overall</h3>
+            <div id="latestValue" class="v">0</div>
+        </div>
+        <div class="stat c3">
+            <h3>Strongest Topic</h3>
+            <div id="strongestValue" class="v">-</div>
+        </div>
+        <div class="stat c4">
+            <h3>Weakest Topic</h3>
+            <div id="weakestValue" class="v">-</div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h2>Topic Score Bar Graph (Avg / 10)</h2>
+        <div id="topicBars" class="bars"></div>
+    </div>
+
+    <div class="panel">
+        <h2>Weak Areas (Graphical View)</h2>
+        <div id="weakAreas" class="weak-grid"></div>
+    </div>
+</div>
+
+<script>
+    function colorForScore(score) {
+        if (score >= 8) return "var(--good)";
+        if (score >= 6) return "var(--mid)";
+        return "var(--bad)";
+    }
+
+    function safeFixed(value) {
+        return Number(value || 0).toFixed(2);
+    }
+
+    function aggregateTopicScores(history) {
+        const totals = {};
+        const counts = {};
+
+        history.forEach((entry) => {
+            const topicBreakdown = entry.report.topic_breakdown || {};
+            Object.entries(topicBreakdown).forEach(([topic, info]) => {
+                totals[topic] = (totals[topic] || 0) + Number(info.average || 0);
+                counts[topic] = (counts[topic] || 0) + 1;
+            });
+        });
+
+        return Object.keys(totals)
+            .map((topic) => ({
+                topic,
+                score: totals[topic] / counts[topic],
+            }))
+            .sort((a, b) => b.score - a.score);
+    }
+
+    function renderBars(aggregated) {
+        const barsEl = document.getElementById("topicBars");
+        if (!aggregated.length) {
+            barsEl.innerHTML = '<div class="empty">No scores yet. Complete one interview to see graphs.</div>';
+            return;
+        }
+
+        barsEl.innerHTML = aggregated.map((item) => `
+            <div class="row">
+                <strong>${item.topic}</strong>
+                <div class="track">
+                    <div class="fill" style="width:${Math.max(0, Math.min(item.score, 10)) * 10}%; background:${colorForScore(item.score)}"></div>
+                </div>
+                <div class="score">${safeFixed(item.score)}</div>
+            </div>
+        `).join("");
+    }
+
+    function renderWeakAreas(aggregated) {
+        const weakEl = document.getElementById("weakAreas");
+        const weakTopics = aggregated.filter((item) => item.score < 7);
+
+        if (!weakTopics.length) {
+            weakEl.innerHTML = '<div class="empty">No weak areas detected right now. Current topic averages are healthy.</div>';
+            return;
+        }
+
+        weakEl.innerHTML = weakTopics.map((item) => {
+            const gap = Math.max(0, 10 - item.score);
+            const gapPercent = Math.min(100, gap * 10);
+            return `
+                <div class="weak-card">
+                    <h3>${item.topic}</h3>
+                    <div class="track">
+                        <div class="fill" style="width:${gapPercent}%; background:var(--bad)"></div>
+                    </div>
+                    <p class="weak-note">Improvement gap: ${safeFixed(gap)} points to reach 10/10.</p>
+                </div>
+            `;
+        }).join("");
+    }
+
+    function renderStats(history, aggregated) {
+        document.getElementById("attemptsValue").textContent = String(history.length);
+        if (!history.length) {
+            document.getElementById("latestValue").textContent = "0.00";
+            document.getElementById("strongestValue").textContent = "-";
+            document.getElementById("weakestValue").textContent = "-";
+            return;
+        }
+
+        const latest = history[0].report || {};
+        document.getElementById("latestValue").textContent = safeFixed(latest.overall_score);
+
+        if (aggregated.length) {
+            const strongest = aggregated[0];
+            const weakest = aggregated[aggregated.length - 1];
+            document.getElementById("strongestValue").textContent = `${strongest.topic} ${safeFixed(strongest.score)}`;
+            document.getElementById("weakestValue").textContent = `${weakest.topic} ${safeFixed(weakest.score)}`;
+        } else {
+            document.getElementById("strongestValue").textContent = "-";
+            document.getElementById("weakestValue").textContent = "-";
+        }
+    }
+
+    async function loadDashboard() {
+        const res = await fetch("/api/history/");
+        if (!res.ok) throw new Error(`Unable to load history (${res.status})`);
+        const data = await res.json();
+        const history = data.history || [];
+        const aggregated = aggregateTopicScores(history);
+
+        renderStats(history, aggregated);
+        renderBars(aggregated);
+        renderWeakAreas(aggregated);
+    }
+
+    loadDashboard().catch((error) => {
+        document.getElementById("topicBars").innerHTML = `<div class="empty">${error.message}</div>`;
+        document.getElementById("weakAreas").innerHTML = "";
+    });
+</script>
+</body>
+</html>

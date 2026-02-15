@@ -55,13 +55,21 @@ def compile_interview_report(responses: List[Dict[str, object]]) -> Dict[str, ob
     for item in responses:
         by_topic[str(item["topic"])].append(int(item["score"]))
 
-    topic_breakdown = {
-        topic: {
-            "average": round(mean(scores), 2),
+    topic_breakdown = {}
+    for topic, scores in sorted(by_topic.items()):
+        average = round(mean(scores), 2)
+        if average >= 8:
+            topic_feedback = "Strong performance in this topic. Keep answers concise and example-driven."
+        elif average >= 6:
+            topic_feedback = "Good baseline. Add deeper reasoning and clearer structure for better impact."
+        else:
+            topic_feedback = "Needs improvement. Revisit fundamentals and practice with concrete examples."
+
+        topic_breakdown[topic] = {
+            "average": average,
             "count": len(scores),
+            "feedback": topic_feedback,
         }
-        for topic, scores in sorted(by_topic.items())
-    }
 
     overall = round(mean(int(item["score"]) for item in responses), 2)
     if overall >= 8:
