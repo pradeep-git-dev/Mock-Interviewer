@@ -1,0 +1,292 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Mock Interviewer</title>
+    <style>
+        :root {
+            --bg: #f4f7fb;
+            --card: #ffffff;
+            --accent: #1565c0;
+            --text: #17212b;
+            --muted: #6b7785;
+            --good: #1b8a3e;
+            --warn: #c77f00;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(circle at top left, #e9f2ff, #f7fafc 55%);
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 12px 24px rgba(24, 39, 75, 0.08);
+        }
+
+        h1 {
+            margin: 0 0 8px;
+            color: #0f4c91;
+        }
+
+        .muted {
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+
+        .question-box {
+            padding: 14px;
+            border-left: 4px solid var(--accent);
+            background: #f6faff;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        button.secondary {
+            background: #dbe8f7;
+            color: #173a63;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            border-radius: 8px;
+            border: 1px solid #ccd8e6;
+            padding: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .feedback {
+            margin-top: 12px;
+            padding: 10px;
+            border-radius: 8px;
+            background: #f4f9f5;
+            border: 1px solid #cde8d5;
+        }
+
+        .report {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 8px;
+            background: #fffdf5;
+            border: 1px solid #f0e4b8;
+        }
+
+        .topic-chip {
+            display: inline-block;
+            font-size: 12px;
+            font-weight: 700;
+            color: #0d549d;
+            background: #e8f2ff;
+            padding: 4px 8px;
+            border-radius: 999px;
+            margin-right: 6px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Voice Mock Interviewer</h1>
+        <div class="muted">25 questions | Topics: {{ topics }}</div>
+
+        <div id="progress" class="muted">Press Start to begin.</div>
+
+        <div class="question-box">
+            <span id="topic" class="topic-chip">-</span>
+            <div id="question">Question will appear here.</div>
+        </div>
+
+        <div class="controls">
+            <button class="primary" id="startBtn">Start Interview</button>
+            <button class="secondary" id="speakBtn" disabled>Speak Question</button>
+            <button class="secondary" id="recordBtn" disabled>Start Voice Input</button>
+            <button class="primary" id="submitBtn" disabled>Submit Answer</button>
+        </div>
+
+        <textarea id="answer" placeholder="Your transcribed answer appears here..."></textarea>
+
+        <div id="feedback" class="feedback" style="display:none"></div>
+        <div id="report" class="report" style="display:none"></div>
+    </div>
+</div>
+
+<script>
+    const startBtn = document.getElementById("startBtn");
+    const speakBtn = document.getElementById("speakBtn");
+    const recordBtn = document.getElementById("recordBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const answerBox = document.getElementById("answer");
+    const questionEl = document.getElementById("question");
+    const topicEl = document.getElementById("topic");
+    const progressEl = document.getElementById("progress");
+    const feedbackEl = document.getElementById("feedback");
+    const reportEl = document.getElementById("report");
+
+    let currentQuestion = null;
+    let recognition = null;
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = "en-US";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+            const text = event.results[0][0].transcript;
+            answerBox.value = text;
+        };
+
+        recognition.onerror = () => {
+            progressEl.textContent = "Voice capture failed. You can still type your answer.";
+        };
+
+        recognition.onend = () => {
+            recordBtn.textContent = "Start Voice Input";
+        };
+    } else {
+        recordBtn.disabled = true;
+        progressEl.textContent = "Speech recognition is not supported in this browser.";
+    }
+
+    function speak(text) {
+        if (!window.speechSynthesis) {
+            return;
+        }
+        const utter = new SpeechSynthesisUtterance(text);
+        utter.rate = 1;
+        utter.pitch = 1;
+        window.speechSynthesis.cancel();
+        window.speechSynthesis.speak(utter);
+    }
+
+    function showQuestion(payload) {
+        currentQuestion = payload.question;
+        questionEl.textContent = currentQuestion.prompt;
+        topicEl.textContent = currentQuestion.topic;
+        progressEl.textContent = `Question ${payload.question_index} of ${payload.total_questions || 25}`;
+        speakBtn.disabled = false;
+        recordBtn.disabled = !recognition;
+        submitBtn.disabled = false;
+        answerBox.value = "";
+        speak(currentQuestion.prompt);
+    }
+
+    startBtn.addEventListener("click", async () => {
+        try {
+            const res = await fetch("/api/start/");
+            if (!res.ok) {
+                throw new Error(`Start failed (${res.status})`);
+            }
+            const data = await res.json();
+            if (!data.question) {
+                throw new Error("Start response did not include a question.");
+            }
+            feedbackEl.style.display = "none";
+            reportEl.style.display = "none";
+            startBtn.disabled = true;
+            showQuestion(data);
+        } catch (error) {
+            progressEl.textContent = `Unable to start interview: ${error.message}`;
+        }
+    });
+
+    speakBtn.addEventListener("click", () => {
+        if (currentQuestion) {
+            speak(currentQuestion.prompt);
+        }
+    });
+
+    recordBtn.addEventListener("click", () => {
+        if (!recognition) return;
+        recordBtn.textContent = "Listening...";
+        recognition.start();
+    });
+
+    submitBtn.addEventListener("click", async () => {
+        try {
+            const answer = answerBox.value.trim();
+            const res = await fetch("/api/answer/", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ answer }),
+            });
+
+            if (!res.ok) {
+                throw new Error(`Submit failed (${res.status})`);
+            }
+
+            const data = await res.json();
+            feedbackEl.style.display = "block";
+
+            if (data.evaluation) {
+                feedbackEl.innerHTML = `<strong>Score:</strong> ${data.evaluation.score}/10<br><strong>Feedback:</strong> ${data.evaluation.feedback}`;
+            }
+
+            if (data.finished) {
+                submitBtn.disabled = true;
+                speakBtn.disabled = true;
+                recordBtn.disabled = true;
+                startBtn.disabled = false;
+                progressEl.textContent = "Interview finished.";
+
+                const rows = Object.entries(data.report.topic_breakdown)
+                    .map(([topic, info]) => `<li>${topic}: avg ${info.average} (${info.count} questions)</li>`)
+                    .join("");
+
+                reportEl.style.display = "block";
+                reportEl.innerHTML = `<strong>Overall Score:</strong> ${data.report.overall_score}/10<br><strong>Summary:</strong> ${data.report.overall_feedback}<br><ul>${rows}</ul>`;
+                speak(`Interview completed. Your overall score is ${data.report.overall_score} out of ten.`);
+                return;
+            }
+
+            showQuestion({
+                question_index: data.question_index,
+                total_questions: 25,
+                question: data.question,
+            });
+        } catch (error) {
+            progressEl.textContent = `Unable to submit answer: ${error.message}`;
+        }
+    });
+</script>
+</body>
+</html>
