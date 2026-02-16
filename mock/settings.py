@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urlparse
+from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -97,6 +98,7 @@ WSGI_APPLICATION = 'mock.wsgi.application'
 
 DB_URL = (
     os.environ.get("POSTGRES_URL", "").strip()
+    or os.environ.get("POSTGRES_URL_NON_POOLING", "").strip()
     or os.environ.get("DATABASE_URL", "").strip()
 )
 DB_NAME = os.environ.get("DB_NAME", "").strip()
@@ -132,6 +134,10 @@ elif all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
         }
     }
 else:
+    if os.environ.get("VERCEL") and not DEBUG:
+        raise ImproperlyConfigured(
+            "No Postgres configuration found on Vercel. Set POSTGRES_URL (or POSTGRES_URL_NON_POOLING)."
+        )
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
