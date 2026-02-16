@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, unquote, urlparse
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +22,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-jj5$xd+w$&zvscpgh1y_u_y$2qk!ayvj%)+dlbfs7$%)uey6xg'
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-jj5$xd+w$&zvscpgh1y_u_y$2qk!ayvj%)+dlbfs7$%)uey6xg")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get("DEBUG", "true").strip().lower() in {"1", "true", "yes", "on"}
@@ -94,13 +95,31 @@ WSGI_APPLICATION = 'mock.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+DB_URL = (
+    os.environ.get("POSTGRES_URL", "").strip()
+    or os.environ.get("DATABASE_URL", "").strip()
+)
 DB_NAME = os.environ.get("DB_NAME", "").strip()
 DB_USER = os.environ.get("DB_USER", "").strip()
 DB_PASSWORD = os.environ.get("DB_PASSWORD", "").strip()
 DB_HOST = os.environ.get("DB_HOST", "").strip()
 DB_PORT = os.environ.get("DB_PORT", "5432").strip()
 
-if all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
+if DB_URL:
+    parsed = urlparse(DB_URL)
+    query = dict(parse_qsl(parsed.query))
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": unquote(parsed.path.lstrip("/")),
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname or "",
+            "PORT": str(parsed.port or "5432"),
+            "OPTIONS": {"sslmode": query.get("sslmode", "require")},
+        }
+    }
+elif all([DB_NAME, DB_USER, DB_PASSWORD, DB_HOST]):
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.postgresql",
@@ -157,8 +176,16 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Use cookie-backed sessions so interview state works without requiring DB migrations.
-SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
+# Production hardening for Vercel.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+SESSION_COOKIE_SECURE = not DEBUG
+CSRF_COOKIE_SECURE = not DEBUG
+SECURE_HSTS_SECONDS = 60 * 60 * 24 * 30 if not DEBUG else 0
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+X_FRAME_OPTIONS = "DENY"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
