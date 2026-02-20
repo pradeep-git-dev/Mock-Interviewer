@@ -8,7 +8,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-jj5$xd+w$&zvscpgh1y_u_y$2qk!ayvj%)+dlbfs7$%)uey6xg")
-DEBUG = os.environ.get("DEBUG", "true").strip().lower() in {"1", "true", "yes", "on"}
+DEBUG = os.environ.get("DEBUG", "false").strip().lower() in {"1", "true", "yes", "on"}
 
 ALLOWED_HOSTS = [
     "127.0.0.1",

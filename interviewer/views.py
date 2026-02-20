@@ -1,7 +1,7 @@
 ﻿import json
 
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.views.decorators.cache import never_cache
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.views.decorators.http import require_GET, require_POST
@@ -27,6 +27,16 @@ def _load_session(request: HttpRequest) -> InterviewSession:
 def _save_session(request: HttpRequest, session: InterviewSession) -> None:
     request.session[SESSION_KEY] = session.to_dict()
     request.session.modified = True
+
+
+@require_GET
+def legacy_auth_redirect(request: HttpRequest):
+    return redirect("interview-home")
+
+
+@require_POST
+def legacy_auth_submit_redirect(request: HttpRequest):
+    return redirect("interview-home")
 
 
 @never_cache

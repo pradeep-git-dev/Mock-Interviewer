@@ -8,10 +8,17 @@ class InterviewFlowTests(SimpleTestCase):
     def setUp(self):
         self.client = Client()
 
-    def test_auth_routes_are_removed(self):
-        self.assertEqual(self.client.get("/signin/").status_code, 404)
-        self.assertEqual(self.client.get("/signup/").status_code, 404)
-        self.assertEqual(self.client.post("/logout/").status_code, 404)
+    def test_legacy_auth_routes_redirect_to_home(self):
+        signin = self.client.get("/signin/")
+        signup = self.client.get("/signup/")
+        logout = self.client.post("/logout/")
+
+        self.assertEqual(signin.status_code, 302)
+        self.assertEqual(signup.status_code, 302)
+        self.assertEqual(logout.status_code, 302)
+        self.assertEqual(signin.url, "/")
+        self.assertEqual(signup.url, "/")
+        self.assertEqual(logout.url, "/")
 
     def test_home_is_public_and_loads_dashboard(self):
         response = self.client.get("/")
