@@ -1,10 +1,10 @@
-﻿from django.test import Client, TestCase
+﻿from django.test import Client, SimpleTestCase
 
 from .logic import InterviewSession
 from .questions import get_question_bank
 
 
-class InterviewFlowTests(TestCase):
+class InterviewFlowTests(SimpleTestCase):
     def setUp(self):
         self.client = Client()
 
