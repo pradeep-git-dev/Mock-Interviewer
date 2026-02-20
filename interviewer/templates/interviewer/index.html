@@ -1,265 +1,234 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mock Interviewer</title>
+    <title>Interview Console</title>
     <style>
         :root {
-            --bg: #eef4fb;
-            --panel: #0f2742;
-            --panel-soft: #173a60;
-            --card: #ffffff;
-            --accent: #1d5d9e;
-            --text: #1a2b3d;
-            --muted: #5f7288;
-            --border: #d3deea;
+            --primary-blue: #60a5fa;
+            --positive-green: #22c55e;
+            --warning-amber: #f59e0b;
+            --grid-light: #334155;
+            --bg-dark: #0b1220;
+            --text-indigo: #e2e8f0;
+            --surface: #111827;
         }
 
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
 
         body {
             margin: 0;
             font-family: "Segoe UI", Tahoma, sans-serif;
-            color: var(--text);
-            background: linear-gradient(165deg, #eaf2fb 0%, #f6f9fd 100%);
+            background: var(--bg-dark);
+            color: var(--text-indigo);
+            line-height: 1.55;
         }
 
-        .layout {
-            min-height: 100vh;
+        .wrap {
+            max-width: 1040px;
+            margin: 0 auto;
+            padding: 40px 24px 56px;
+        }
+
+        .head {
             display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-start;
+            margin-bottom: 28px;
         }
 
-        .sidebar {
-            width: 300px;
-            background: linear-gradient(180deg, var(--panel) 0%, var(--panel-soft) 100%);
-            color: #e9f2ff;
-            padding: 22px 18px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .sidebar h1 {
-            font-size: 22px;
+        .title {
             margin: 0;
+            font-size: 34px;
+            line-height: 1.15;
+            font-family: Georgia, "Times New Roman", serif;
+            letter-spacing: 0.2px;
         }
 
-        .side-note {
-            margin: 0;
-            color: #bdd3ea;
-            font-size: 14px;
-            line-height: 1.45;
+        .sub {
+            margin: 10px 0 0;
+            font-size: 15px;
+            color: var(--text-indigo);
+            opacity: 0.86;
         }
 
-        .side-btn {
-            border: 1px solid #84a8cc;
-            background: transparent;
-            color: #edf5ff;
-            border-radius: 10px;
-            padding: 10px 12px;
-            font-weight: 700;
-            cursor: pointer;
-            text-align: left;
-        }
-
-        .side-btn.primary {
-            background: #e8f1fd;
-            color: #133b63;
-            border-color: #e8f1fd;
-        }
-
-        .main {
-            flex: 1;
-            padding: 22px;
-        }
-
-        .topbar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .user-badge {
-            background: #e7f0fc;
-            color: #1b4f84;
-            border: 1px solid #2f679d;
-            border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .logout-btn {
-            background: #1b4f84;
-            color: #fff;
-            border: none;
+        .badge {
+            border: 1px solid var(--grid-light);
+            background: var(--surface);
+            color: var(--text-indigo);
             border-radius: 8px;
-            padding: 8px 12px;
+            padding: 10px 14px;
+            font-size: 12px;
             font-weight: 700;
-            cursor: pointer;
+            white-space: nowrap;
+            box-shadow: 0 2px 8px rgba(2, 6, 23, 0.4);
         }
 
         .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 20px;
-            box-shadow: 0 12px 24px rgba(22, 52, 86, 0.08);
+            border: 1px solid var(--grid-light);
+            border-radius: 8px;
+            background: var(--surface);
+            padding: 24px;
+            box-shadow: 0 4px 14px rgba(2, 6, 23, 0.45);
         }
 
-        .meta {
-            margin: 0 0 16px;
-            color: var(--muted);
+        .row {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 14px;
+            align-items: center;
+            margin-bottom: 16px;
         }
 
-        #progress {
-            margin-bottom: 12px;
-            color: #294661;
-            font-weight: 600;
-        }
-
-        .question-box {
-            background: #f6faff;
-            border: 1px solid #d2e2f3;
-            border-left: 5px solid var(--accent);
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 14px;
-        }
-
-        .topic-chip {
+        .btn-link {
             display: inline-block;
+            text-decoration: none;
+            border-radius: 8px;
+            border: 1px solid var(--primary-blue);
+            background: var(--primary-blue);
+            color: #0b1220;
+            padding: 10px 14px;
+            font-weight: 700;
+            box-shadow: 0 2px 6px rgba(96, 165, 250, 0.26);
+        }
+
+        .progress {
+            font-weight: 700;
+            margin: 0 0 12px;
+            color: var(--text-indigo);
+        }
+
+        .question {
+            border: 1px solid var(--grid-light);
+            border-radius: 8px;
+            background: #0f172a;
+            padding: 16px;
+            margin-bottom: 14px;
+            min-height: 108px;
+        }
+
+        .topic {
+            display: inline-block;
+            border-radius: 8px;
+            background: var(--primary-blue);
+            color: #0b1220;
+            padding: 4px 10px;
             font-size: 12px;
             font-weight: 700;
             margin-bottom: 8px;
-            padding: 4px 8px;
-            border-radius: 999px;
-            background: #dceafe;
-            color: #1a5488;
         }
 
         .controls {
-            display: flex;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(120px, 1fr));
             gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
 
         button {
-            border: none;
-            border-radius: 9px;
-            padding: 10px 14px;
-            cursor: pointer;
+            border: 1px solid var(--primary-blue);
+            border-radius: 8px;
+            padding: 11px;
             font-weight: 700;
+            cursor: pointer;
+            background: var(--primary-blue);
+            color: #0b1220;
+            box-shadow: 0 2px 6px rgba(96, 165, 250, 0.24);
         }
 
-        .primary {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .secondary {
-            background: #e3edf9;
-            color: #1a4a79;
+        button.secondary {
+            background: transparent;
+            color: var(--primary-blue);
         }
 
         button:disabled {
-            opacity: 0.55;
+            opacity: 0.58;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         textarea {
             width: 100%;
-            min-height: 140px;
-            border: 1px solid #c8d8ea;
-            border-radius: 10px;
-            padding: 11px;
-            font-size: 15px;
-            resize: vertical;
-        }
-
-        .panel {
-            margin-top: 16px;
-            border: 1px solid #d8e4f0;
-            border-radius: 10px;
-            background: #f8fbff;
+            min-height: 170px;
+            border-radius: 8px;
+            border: 1px solid var(--grid-light);
+            background: #0f172a;
+            color: var(--text-indigo);
             padding: 12px;
+            resize: vertical;
+            font-size: 14px;
+            margin-bottom: 14px;
         }
 
-        .panel h3 {
-            margin: 0 0 8px;
-            font-size: 16px;
+        .report {
+            display: none;
+            border: 1px solid var(--grid-light);
+            border-radius: 8px;
+            background: #0f172a;
+            padding: 14px;
         }
 
-        .panel ul {
-            margin: 8px 0 0;
-            padding-left: 18px;
-        }
-
-        .panel li {
-            margin-bottom: 6px;
-            color: #2a4f72;
-        }
-
-        @media (max-width: 900px) {
-            .layout {
-                flex-direction: column;
+        @media (max-width: 760px) {
+            .wrap {
+                padding: 28px 16px 36px;
             }
 
-            .sidebar {
-                width: 100%;
+            .head {
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+
+            .row {
+                grid-template-columns: 1fr;
+            }
+
+            .controls {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-<div class="layout">
-    <aside class="sidebar">
-        <h1>Mock Interviewer</h1>
-        <p class="side-note">Question bank: {{ question_bank_size }} questions<br>Interview run: {{ total_questions }} questions</p>
-        <button id="startBtn" class="side-btn primary">Start Interview</button>
-        <button id="historyBtn" class="side-btn">View Past Scores & Feedback</button>
-        <p class="side-note">Topics covered: {{ topics }}</p>
-    </aside>
-
-    <main class="main">
-        <div class="topbar">
-            <span class="user-badge">{{ display_name }}</span>
-            <form method="post" action="/logout/">
-                {% csrf_token %}
-                <button type="submit" class="logout-btn">Logout</button>
-            </form>
+<div class="wrap">
+    <div class="head">
+        <div>
+            <h1 class="title">Interview Console</h1>
+            <p class="sub">No accounts required. Each question is asked in voice automatically before you can submit an answer.</p>
         </div>
-        <div class="card">
-            <div id="progress">Press "Start Interview" to begin.</div>
+        <div class="badge">Question Bank: {{ question_bank_size }} | Topics: {{ topics }}</div>
+    </div>
 
-            <div class="question-box">
-                <div id="topic" class="topic-chip">-</div>
-                <div id="question">Question will appear here.</div>
-            </div>
-
-            <div class="controls">
-                <button class="secondary" id="speakBtn" disabled>Speak Question</button>
-                <button class="secondary" id="recordBtn" disabled>Start Voice Input</button>
-                <button class="primary" id="submitBtn" disabled>Submit Answer</button>
-            </div>
-
-            <textarea id="answer" placeholder="Type or dictate your answer..."></textarea>
-
-            <div id="report" class="panel" style="display:none"></div>
+    <section class="card">
+        <div class="row">
+            <p class="sub">Run length: {{ total_questions }} questions.</p>
+            <a class="btn-link" href="/past-scores/">Open Dashboard</a>
         </div>
-    </main>
+
+        <div id="progress" class="progress">Press "Start Interview" to begin.</div>
+
+        <div class="question">
+            <div id="topic" class="topic">-</div>
+            <div id="question">Question will appear here.</div>
+        </div>
+
+        <div class="controls">
+            <button id="startBtn">Start Interview</button>
+            <button id="recordBtn" class="secondary" disabled>Voice Input</button>
+        </div>
+
+        <textarea id="answer" placeholder="Type or dictate your answer..."></textarea>
+        <button id="submitBtn" disabled>Submit Answer</button>
+
+        <div id="report" class="report"></div>
+    </section>
 </div>
 
 <script>
+    const STORAGE_KEY = "mock_interview_attempts_v1";
+
     const startBtn = document.getElementById("startBtn");
-    const historyBtn = document.getElementById("historyBtn");
-    const speakBtn = document.getElementById("speakBtn");
     const recordBtn = document.getElementById("recordBtn");
     const submitBtn = document.getElementById("submitBtn");
     const answerBox = document.getElementById("answer");
@@ -271,6 +240,7 @@
     let currentQuestion = null;
     let recognition = null;
     let totalQuestions = 25;
+    let questionAudioPlayed = false;
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -283,20 +253,11 @@
         };
         recognition.onerror = () => {
             progressEl.textContent = "Voice capture failed. You can type your answer.";
-            recordBtn.textContent = "Start Voice Input";
+            recordBtn.textContent = "Voice Input";
         };
         recognition.onend = () => {
-            recordBtn.textContent = "Start Voice Input";
+            recordBtn.textContent = "Voice Input";
         };
-    } else {
-        recordBtn.disabled = true;
-    }
-
-    function speak(text) {
-        if (!window.speechSynthesis || !text) return;
-        const utterance = new SpeechSynthesisUtterance(text);
-        window.speechSynthesis.cancel();
-        window.speechSynthesis.speak(utterance);
     }
 
     function getCookie(name) {
@@ -308,14 +269,53 @@
         return "";
     }
 
+    function speakMandatory(text) {
+        return new Promise((resolve, reject) => {
+            if (!window.speechSynthesis || !text) {
+                reject(new Error("Speech synthesis is unavailable. Voice question is mandatory."));
+                return;
+            }
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.onend = () => resolve();
+            utterance.onerror = () => reject(new Error("Unable to play question audio."));
+            window.speechSynthesis.cancel();
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+
+    function safeFixed(value, digits = 2) {
+        return Number(value || 0).toFixed(digits);
+    }
+
+    function loadAttempts() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveAttempt(report) {
+        const attempts = loadAttempts();
+        attempts.unshift({
+            completed_at: new Date().toISOString(),
+            report,
+        });
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts.slice(0, 100)));
+    }
+
     function renderFinalReport(report) {
         const topicRows = Object.entries(report.topic_breakdown)
-            .map(([topic, info]) => `<li><strong>${topic}</strong>: score ${info.average}/10 across ${info.count} question(s). Feedback: ${info.feedback}</li>`)
+            .map(([topic, info]) => `<li><strong>${topic}</strong>: score ${safeFixed(info.average)} / 10. Feedback: ${info.feedback}</li>`)
             .join("");
 
         reportEl.innerHTML = `
             <h3>Final Interview Report</h3>
-            <div><strong>Overall Score:</strong> ${report.overall_score}/10</div>
+            <div><strong>Overall Score:</strong> ${safeFixed(report.overall_score)} / 10</div>
             <div><strong>Overall Feedback:</strong> ${report.overall_feedback}</div>
             <ul>${topicRows}</ul>
         `;
@@ -325,13 +325,24 @@
     function showQuestion(payload) {
         currentQuestion = payload.question;
         totalQuestions = payload.total_questions || totalQuestions;
+        questionAudioPlayed = false;
         questionEl.textContent = currentQuestion.prompt;
         topicEl.textContent = currentQuestion.topic;
-        progressEl.textContent = `Question ${payload.question_index} of ${totalQuestions}`;
+        progressEl.textContent = `Question ${payload.question_index} of ${totalQuestions} (voice required)`;
         answerBox.value = "";
-        speakBtn.disabled = false;
         recordBtn.disabled = !recognition;
-        submitBtn.disabled = false;
+        submitBtn.disabled = true;
+
+        speakMandatory(currentQuestion.prompt)
+            .then(() => {
+                questionAudioPlayed = true;
+                progressEl.textContent = `Question ${payload.question_index} of ${totalQuestions}`;
+                submitBtn.disabled = false;
+            })
+            .catch((error) => {
+                progressEl.textContent = error.message;
+                submitBtn.disabled = true;
+            });
     }
 
     startBtn.addEventListener("click", async () => {
@@ -341,18 +352,9 @@
             const data = await res.json();
             reportEl.style.display = "none";
             showQuestion(data);
-            speak(data.question.prompt);
         } catch (error) {
             progressEl.textContent = `Unable to start interview: ${error.message}`;
         }
-    });
-
-    historyBtn.addEventListener("click", () => {
-        window.location.href = "/past-scores/";
-    });
-
-    speakBtn.addEventListener("click", () => {
-        if (currentQuestion) speak(currentQuestion.prompt);
     });
 
     recordBtn.addEventListener("click", () => {
@@ -363,6 +365,11 @@
 
     submitBtn.addEventListener("click", async () => {
         try {
+            if (!questionAudioPlayed) {
+                progressEl.textContent = "You must hear the question audio before submitting.";
+                return;
+            }
+
             const answer = answerBox.value.trim();
             const csrfToken = getCookie("csrftoken");
             const res = await fetch("/api/answer/", {
@@ -378,11 +385,10 @@
             const data = await res.json();
             if (data.finished) {
                 submitBtn.disabled = true;
-                speakBtn.disabled = true;
                 recordBtn.disabled = true;
-                progressEl.textContent = "Interview finished. Final feedback is now available.";
+                progressEl.textContent = "Interview finished. Report saved in your browser.";
                 renderFinalReport(data.report);
-                speak(`Interview completed. Your overall score is ${data.report.overall_score} out of ten.`);
+                saveAttempt(data.report);
                 return;
             }
 
