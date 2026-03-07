@@ -38,6 +38,8 @@ class InterviewSession:
             "score": evaluation["score"],
             "feedback": evaluation["feedback"],
             "matched_keywords": evaluation["matched_keywords"],
+            "strengths": evaluation.get("strengths", ""),
+            "improvement": evaluation.get("improvement", ""),
         }
         self.responses.append(payload)
         self.index += 1

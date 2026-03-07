@@ -1,4 +1,4 @@
-﻿import json
+import json
 
 from django.http import HttpRequest, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import redirect, render
@@ -84,7 +84,7 @@ def submit_answer(request: HttpRequest):
         return HttpResponseBadRequest("Invalid JSON payload")
 
     answer = str(payload.get("answer", "")).strip()
-    session.save_response(answer)
+    evaluation = session.save_response(answer)
 
     if session.is_finished():
         _save_session(request, session)
@@ -93,6 +93,12 @@ def submit_answer(request: HttpRequest):
             {
                 "finished": True,
                 "report": report,
+                "last_evaluation": {
+                    "score": evaluation["score"],
+                    "feedback": evaluation["feedback"],
+                    "strengths": evaluation.get("strengths", ""),
+                    "improvement": evaluation.get("improvement", ""),
+                },
             }
         )
 
@@ -104,5 +110,11 @@ def submit_answer(request: HttpRequest):
             "question_index": session.index + 1,
             "total_questions": len(session.questions),
             "question": _serialize_question(next_question),
+            "evaluation": {
+                "score": evaluation["score"],
+                "feedback": evaluation["feedback"],
+                "strengths": evaluation.get("strengths", ""),
+                "improvement": evaluation.get("improvement", ""),
+            },
         }
     )

@@ -1,4 +1,4 @@
-﻿from django.test import Client, SimpleTestCase
+from django.test import Client, SimpleTestCase
 
 from .logic import InterviewSession
 from .questions import get_question_bank
@@ -20,7 +20,7 @@ class InterviewFlowTests(SimpleTestCase):
         self.assertEqual(signup.url, "/")
         self.assertEqual(logout.url, "/")
 
-    def test_home_is_public_and_loads_dashboard(self):
+    def test_home_is_public_and_loads_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Interview Console")
@@ -36,7 +36,7 @@ class InterviewFlowTests(SimpleTestCase):
         session = InterviewSession()
         self.assertEqual(len(session.questions), 25)
 
-    def test_start_and_submit_answer_without_per_question_feedback(self):
+    def test_start_and_submit_answer_with_per_question_evaluation(self):
         start = self.client.get("/api/start/")
         self.assertEqual(start.status_code, 200)
         self.assertEqual(start.json()["total_questions"], 25)
@@ -49,7 +49,9 @@ class InterviewFlowTests(SimpleTestCase):
         self.assertEqual(first.status_code, 200)
         payload = first.json()
         self.assertFalse(payload["finished"])
-        self.assertNotIn("evaluation", payload)
+        self.assertIn("evaluation", payload)
+        self.assertIn("score", payload["evaluation"])
+        self.assertIn("feedback", payload["evaluation"])
         self.assertIn("question", payload)
 
     def test_completion_returns_report_without_server_history_endpoint(self):

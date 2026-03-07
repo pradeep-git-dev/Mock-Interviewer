@@ -1,23 +1,30 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
+import logging
 from collections import defaultdict
 from statistics import mean
 from typing import Dict, List
 
+from .ai_service import evaluate_with_ai
 from .questions import Question
+
+logger = logging.getLogger(__name__)
 
 
 def _normalize(value: str) -> str:
     return (value or "").strip().lower()
 
 
-def evaluate_answer(question: Question, answer: str) -> Dict[str, object]:
+def _keyword_evaluate(question: Question, answer: str) -> Dict[str, object]:
+    """Original keyword-based evaluation (used as fallback)."""
     normalized = _normalize(answer)
     if not normalized:
         return {
             "score": 0,
             "feedback": "No answer captured. Try speaking clearly and include key concepts.",
             "matched_keywords": [],
+            "strengths": "",
+            "improvement": "Provide a substantive answer covering key concepts.",
         }
 
     keywords = [word.lower() for word in question.expected_keywords]
@@ -31,16 +38,50 @@ def evaluate_answer(question: Question, answer: str) -> Dict[str, object]:
 
     if total >= 8:
         feedback = "Strong answer with good coverage of core ideas."
+        strengths = "Great use of relevant terminology and depth."
+        improvement = "Consider adding a real-world example for extra impact."
     elif total >= 5:
         feedback = "Decent answer. Add more technical detail and concrete terminology."
+        strengths = "Good attempt with partial coverage."
+        improvement = "Include more specific keywords and expand your explanation."
     else:
         feedback = "Answer is too shallow. Cover definitions, mechanism, and one example."
+        strengths = "You attempted the question."
+        improvement = "Revisit the fundamentals and structure your answer with definitions and examples."
 
     return {
         "score": total,
         "feedback": feedback,
         "matched_keywords": matched,
+        "strengths": strengths,
+        "improvement": improvement,
     }
+
+
+def evaluate_answer(question: Question, answer: str) -> Dict[str, object]:
+    """
+    Evaluate a candidate answer, preferring AI evaluation when available.
+    Falls back to keyword matching if AI is unavailable.
+    """
+    normalized = _normalize(answer)
+    if not normalized:
+        return {
+            "score": 0,
+            "feedback": "No answer captured. Try speaking clearly and include key concepts.",
+            "matched_keywords": [],
+            "strengths": "",
+            "improvement": "Provide a substantive answer covering key concepts.",
+        }
+
+    # Try AI evaluation first
+    ai_result = evaluate_with_ai(question.topic, question.prompt, answer)
+    if ai_result is not None:
+        logger.info("Used AI evaluation for qid=%d", question.qid)
+        return ai_result
+
+    # Fallback to keyword matching
+    logger.info("Falling back to keyword evaluation for qid=%d", question.qid)
+    return _keyword_evaluate(question, answer)
 
 
 def compile_interview_report(responses: List[Dict[str, object]]) -> Dict[str, object]:
