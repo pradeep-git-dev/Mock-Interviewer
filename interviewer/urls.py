@@ -1,15 +1,26 @@
-﻿from django.urls import path
+from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    path("signin/", views.legacy_auth_redirect, name="legacy-signin"),
-    path("signup/", views.legacy_auth_redirect, name="legacy-signup"),
-    path("logout/", views.legacy_auth_submit_redirect, name="legacy-logout"),
-    path("signin/submit/", views.legacy_auth_submit_redirect, name="legacy-signin-submit"),
-    path("signup/submit/", views.legacy_auth_submit_redirect, name="legacy-signup-submit"),
+    # ── Pages ──
     path("", views.index, name="interview-home"),
-    path("past-scores/", views.past_scores_page, name="past-scores-page"),
-    path("api/start/", views.start_interview, name="interview-start"),
-    path("api/answer/", views.submit_answer, name="interview-answer"),
+    path("past-scores/", views.past_scores_page, name="past-scores"),
+    path("advanced/", views.advanced_interview_page, name="advanced-interview"),
+    path("performance/", views.performance_dashboard_page, name="performance-dashboard"),
+
+    # ── Basic Interview API ──
+    path("api/start/", views.start_interview),
+    path("api/answer/", views.submit_answer),
+
+    # ── Advanced Interview API ──
+    path("api/adv/start/", views.adv_start),
+    path("api/adv/answer/", views.adv_answer),
+    path("api/adv/skip/", views.adv_skip),
+    path("api/adv/end/", views.adv_end),
+
+    # ── Legacy redirects ──
+    path("signin/", views.legacy_auth_redirect),
+    path("signup/", views.legacy_auth_redirect),
+    path("logout/", views.legacy_auth_submit_redirect),
 ]

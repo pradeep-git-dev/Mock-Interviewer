@@ -4,1190 +4,361 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mock Interviewer Pro — AI-Powered Interview Simulator</title>
-    <meta name="description" content="Practice technical interviews with AI-powered feedback. No sign-up required. Get instant, detailed evaluation on DSA, OS, CN, and Behavioral questions.">
+    <title>MockInterviewer — AI-Powered Interview Simulator</title>
+    <meta name="description" content="Practice interviews. Dominate real ones. AI-powered mock interviews with real-time feedback.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        /* ═══════════════════════════════════════════
-           DESIGN SYSTEM — Mock Interviewer Pro
-           ═══════════════════════════════════════════ */
         :root {
-            --font: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            --bg: #06080f;
-            --surface: rgba(15, 20, 35, 0.65);
-            --glass: rgba(255, 255, 255, 0.04);
-            --glass-border: rgba(255, 255, 255, 0.08);
-            --glass-hover: rgba(255, 255, 255, 0.07);
-            --text: #e8ecf4;
-            --text-dim: rgba(232, 236, 244, 0.55);
-            --accent: #7c5cfc;
-            --accent-glow: rgba(124, 92, 252, 0.35);
-            --accent2: #38bdf8;
-            --accent2-glow: rgba(56, 189, 248, 0.25);
-            --green: #34d399;
-            --green-glow: rgba(52, 211, 153, 0.25);
-            --amber: #fbbf24;
-            --red: #f87171;
-            --radius: 16px;
-            --radius-sm: 10px;
-        }
-
-        *,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html { scroll-behavior: smooth; }
-
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--text);
-            line-height: 1.6;
-            overflow-x: hidden;
-            min-height: 100vh;
-        }
-
-        /* ═══════ 3D ANIMATED BACKGROUND ═══════ */
-        .scene-bg {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-            overflow: hidden;
-            pointer-events: none;
-        }
-
-        .scene-bg::before {
-            content: '';
-            position: absolute;
-            width: 800px;
-            height: 800px;
-            top: -200px;
-            right: -200px;
-            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: floatOrb1 18s ease-in-out infinite;
-        }
-
-        .scene-bg::after {
-            content: '';
-            position: absolute;
-            width: 600px;
-            height: 600px;
-            bottom: -150px;
-            left: -100px;
-            background: radial-gradient(circle, var(--accent2-glow) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: floatOrb2 22s ease-in-out infinite;
-        }
-
-        .orb3 {
-            position: absolute;
-            width: 400px;
-            height: 400px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: radial-gradient(circle, var(--green-glow) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: floatOrb3 15s ease-in-out infinite;
-        }
-
-        @keyframes floatOrb1 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            33% { transform: translate(-80px, 60px) scale(1.1); }
-            66% { transform: translate(40px, -40px) scale(0.95); }
-        }
-        @keyframes floatOrb2 {
-            0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(60px, -80px) scale(1.15); }
-        }
-        @keyframes floatOrb3 {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
-            50% { transform: translate(-45%, -55%) scale(1.2); opacity: 0.8; }
-        }
-
-        /* 3D Grid Floor */
-        .grid-floor {
-            position: absolute;
-            bottom: 0;
-            left: -50%;
-            right: -50%;
-            height: 400px;
-            background:
-                linear-gradient(to top, rgba(124,92,252,0.08) 0%, transparent 100%),
-                repeating-linear-gradient(90deg, transparent, transparent 79px, rgba(124,92,252,0.06) 79px, rgba(124,92,252,0.06) 80px),
-                repeating-linear-gradient(0deg, transparent, transparent 79px, rgba(124,92,252,0.06) 79px, rgba(124,92,252,0.06) 80px);
-            transform: perspective(600px) rotateX(55deg);
-            transform-origin: bottom center;
-            mask-image: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 100%);
-        }
-
-        /* Floating 3D shapes */
-        .shape {
-            position: absolute;
-            border: 1px solid rgba(124,92,252,0.15);
-            background: rgba(124,92,252,0.03);
-            backdrop-filter: blur(2px);
-        }
-        .shape-1 {
-            width: 80px; height: 80px;
-            top: 15%; left: 8%;
-            border-radius: 14px;
-            transform: rotate(45deg) perspective(200px) rotateY(15deg);
-            animation: shapeFloat 8s ease-in-out infinite;
-        }
-        .shape-2 {
-            width: 60px; height: 60px;
-            top: 60%; right: 10%;
-            border-radius: 50%;
-            border-color: rgba(56,189,248,0.15);
-            background: rgba(56,189,248,0.03);
-            animation: shapeFloat 10s ease-in-out infinite reverse;
-        }
-        .shape-3 {
-            width: 100px; height: 100px;
-            bottom: 25%; left: 15%;
-            border-radius: 20px;
-            border-color: rgba(52,211,153,0.12);
-            background: rgba(52,211,153,0.02);
-            transform: rotate(-15deg);
-            animation: shapeFloat 12s ease-in-out infinite;
-        }
-        .shape-4 {
-            width: 50px; height: 50px;
-            top: 30%; right: 20%;
-            clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
-            border: none;
-            background: rgba(251,191,36,0.06);
-            animation: shapeFloat 9s ease-in-out infinite reverse;
-        }
-
-        @keyframes shapeFloat {
-            0%, 100% { transform: translateY(0) rotate(var(--rot, 45deg)); }
-            50% { transform: translateY(-20px) rotate(var(--rot, 45deg)); }
-        }
-
-        /* ═══════ GLASS CARDS ═══════ */
-        .glass {
-            background: var(--glass);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius);
-            backdrop-filter: blur(20px) saturate(1.4);
-            -webkit-backdrop-filter: blur(20px) saturate(1.4);
-            box-shadow:
-                0 8px 32px rgba(0,0,0,0.3),
-                inset 0 1px 0 rgba(255,255,255,0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-        }
-
-        .glass:hover {
-            border-color: rgba(255,255,255,0.12);
-            box-shadow:
-                0 12px 48px rgba(0,0,0,0.4),
-                inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-
-        /* ═══════ LAYOUT ═══════ */
-        .container {
-            position: relative;
-            z-index: 1;
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-        }
-
-        /* ═══════ NAVIGATION ═══════ */
-        nav {
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            padding: 16px 0;
-            background: rgba(6,8,15,0.6);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--glass-border);
-        }
-
-        .nav-inner {
-            max-width: 1100px;
-            margin: 0 auto;
-            padding: 0 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            font-weight: 800;
-            font-size: 22px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            letter-spacing: -0.5px;
-        }
-
-        .logo span {
-            font-weight: 400;
-            opacity: 0.7;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-
-        .nav-link {
-            text-decoration: none;
-            color: var(--text-dim);
-            font-weight: 500;
-            font-size: 14px;
-            padding: 8px 16px;
-            border-radius: var(--radius-sm);
-            transition: color 0.2s, background 0.2s;
-        }
-
-        .nav-link:hover {
-            color: var(--text);
-            background: var(--glass-hover);
-        }
-
-        .nav-link.primary {
-            background: var(--accent);
-            color: #fff;
-            font-weight: 600;
-        }
-
-        .nav-link.primary:hover {
-            background: #6b4ee0;
-        }
-
-        /* ═══════ HERO SECTION ═══════ */
-        .hero {
-            padding: 100px 0 80px;
-            text-align: center;
-        }
-
-        .hero-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 16px 6px 8px;
-            border-radius: 100px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--accent);
-            border: 1px solid rgba(124,92,252,0.2);
-            background: rgba(124,92,252,0.08);
-            margin-bottom: 28px;
-            animation: fadeInUp 0.6s ease;
-        }
-
-        .hero-badge .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--green);
-            box-shadow: 0 0 8px var(--green);
-            animation: pulse 2s ease infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.3); }
-        }
-
-        .hero h1 {
-            font-size: clamp(36px, 6vw, 64px);
-            font-weight: 900;
-            line-height: 1.08;
-            letter-spacing: -1.5px;
-            margin-bottom: 20px;
-            animation: fadeInUp 0.6s ease 0.1s both;
-        }
-
-        .hero h1 .gradient {
-            background: linear-gradient(135deg, var(--accent), var(--accent2), var(--green));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 18px;
-            color: var(--text-dim);
-            max-width: 560px;
-            margin: 0 auto 36px;
-            line-height: 1.7;
-            animation: fadeInUp 0.6s ease 0.2s both;
-        }
-
-        .hero-actions {
-            display: flex;
-            gap: 14px;
-            justify-content: center;
-            flex-wrap: wrap;
-            animation: fadeInUp 0.6s ease 0.3s both;
-        }
-
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* ═══════ BUTTONS ═══════ */
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 14px 28px;
-            border-radius: var(--radius-sm);
-            font-family: var(--font);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.25s ease;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--accent), #5b3fd4);
-            color: #fff;
-            box-shadow: 0 4px 20px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.15);
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.2);
-        }
-
-        .btn-primary:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-ghost {
-            background: var(--glass);
-            color: var(--text);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(12px);
-        }
-
-        .btn-ghost:hover {
-            background: var(--glass-hover);
-            border-color: rgba(255,255,255,0.14);
-            transform: translateY(-1px);
-        }
-
-        .btn-ghost:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-record {
-            background: rgba(248, 113, 113, 0.12);
-            color: var(--red);
-            border: 1px solid rgba(248, 113, 113, 0.2);
-        }
-
-        .btn-record:hover {
-            background: rgba(248, 113, 113, 0.2);
-        }
-
-        .btn-record.recording {
-            animation: recordPulse 1.2s ease infinite;
-        }
-
-        @keyframes recordPulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,0.3); }
-            50% { box-shadow: 0 0 0 12px rgba(248,113,113,0); }
-        }
-
-        /* ═══════ FEATURES SECTION ═══════ */
-        .features {
-            padding: 40px 0 80px;
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 18px;
-        }
-
-        .feature-card {
-            padding: 28px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .feature-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 22px;
-        }
-
-        .feature-icon.purple { background: rgba(124,92,252,0.12); }
-        .feature-icon.blue { background: rgba(56,189,248,0.12); }
-        .feature-icon.green { background: rgba(52,211,153,0.12); }
-
-        .feature-card h3 {
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .feature-card p {
-            font-size: 14px;
-            color: var(--text-dim);
-            line-height: 1.65;
-        }
-
-        /* ═══════ STATS SECTION ═══════ */
-        .stats {
-            padding: 0 0 80px;
-        }
-
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 18px;
-        }
-
-        .stat-card {
-            padding: 24px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 36px;
-            font-weight: 900;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .stat-label {
-            font-size: 13px;
-            color: var(--text-dim);
-            font-weight: 500;
-            margin-top: 4px;
-        }
-
-        /* ═══════ INTERVIEW CONSOLE ═══════ */
-        #interview-section {
-            padding: 0 0 100px;
-        }
-
-        .section-label {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--accent);
-            margin-bottom: 10px;
-        }
-
-        .section-title {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-
-        .section-desc {
-            font-size: 15px;
-            color: var(--text-dim);
-            margin-bottom: 32px;
-            max-width: 520px;
-        }
-
-        .console {
-            padding: 32px;
-        }
-
-        .console-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .console-status {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-dim);
-        }
-
-        .console-status .highlight {
-            color: var(--accent);
-        }
-
-        .progress-bar-wrap {
-            width: 100%;
-            height: 4px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.06);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .progress-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            background: linear-gradient(90deg, var(--accent), var(--accent2));
-            transition: width 0.5s ease;
-            width: 0%;
-        }
-
-        .question-panel {
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            padding: 24px;
-            margin-bottom: 20px;
-            min-height: 120px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .question-panel::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--accent), var(--accent2), var(--green));
-        }
-
-        .topic-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 100px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            margin-bottom: 12px;
-            background: rgba(124,92,252,0.12);
-            color: var(--accent);
-            border: 1px solid rgba(124,92,252,0.2);
-        }
-
-        .question-text {
-            font-size: 17px;
-            font-weight: 500;
-            line-height: 1.65;
-        }
-
-        .answer-area {
-            width: 100%;
-            min-height: 160px;
-            padding: 16px;
-            border-radius: var(--radius-sm);
-            border: 1px solid var(--glass-border);
-            background: rgba(255,255,255,0.02);
-            color: var(--text);
-            font-family: var(--font);
-            font-size: 15px;
-            resize: vertical;
-            outline: none;
-            transition: border-color 0.2s, box-shadow 0.2s;
-            margin-bottom: 18px;
-        }
-
-        .answer-area:focus {
-            border-color: rgba(124,92,252,0.3);
-            box-shadow: 0 0 0 3px rgba(124,92,252,0.1);
-        }
-
-        .answer-area::placeholder {
-            color: var(--text-dim);
-        }
-
-        .console-actions {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        /* ═══════ FEEDBACK TOAST ═══════ */
-        .feedback-panel {
-            display: none;
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            padding: 20px;
-            margin-bottom: 20px;
-            animation: slideIn 0.3s ease;
-        }
-
-        .feedback-panel.visible {
-            display: block;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(-8px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .feedback-score {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 12px;
-        }
-
-        .score-circle {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: 800;
-            color: #fff;
-        }
-
-        .score-circle.high { background: linear-gradient(135deg, #34d399, #10b981); }
-        .score-circle.mid { background: linear-gradient(135deg, var(--accent), #5b3fd4); }
-        .score-circle.low { background: linear-gradient(135deg, var(--amber), #f59e0b); }
-
-        .feedback-details p {
-            font-size: 14px;
-            color: var(--text-dim);
-            margin-bottom: 6px;
-        }
-
-        .feedback-details strong {
-            color: var(--text);
-        }
-
-        /* ═══════ FINAL REPORT ═══════ */
-        .report-panel {
-            display: none;
-            padding: 32px;
-            margin-top: 24px;
-        }
-
-        .report-panel.visible {
-            display: block;
-            animation: fadeInUp 0.5s ease;
-        }
-
-        .report-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .report-overall-score {
-            width: 72px;
-            height: 72px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 28px;
-            font-weight: 900;
-            color: #fff;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            box-shadow: 0 4px 24px var(--accent-glow);
-        }
-
-        .report-overall-text h3 {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .report-overall-text p {
-            font-size: 14px;
-            color: var(--text-dim);
-        }
-
-        .topic-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 14px;
-            margin-top: 20px;
-        }
-
-        .topic-card {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid var(--glass-border);
-            border-radius: var(--radius-sm);
-            padding: 18px;
-        }
-
-        .topic-card-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-
-        .topic-card-name {
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .topic-card-score {
-            font-weight: 800;
-            font-size: 18px;
-        }
-
-        .topic-card-score.high { color: var(--green); }
-        .topic-card-score.mid { color: var(--accent); }
-        .topic-card-score.low { color: var(--amber); }
-
-        .topic-card-bar {
-            height: 4px;
-            border-radius: 4px;
-            background: rgba(255,255,255,0.06);
-            margin-bottom: 10px;
-            overflow: hidden;
-        }
-
-        .topic-card-bar-fill {
-            height: 100%;
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-
-        .topic-card p {
-            font-size: 13px;
-            color: var(--text-dim);
-            line-height: 1.5;
-        }
-
-        /* ═══════ FOOTER ═══════ */
-        footer {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            padding: 40px 24px;
-            border-top: 1px solid var(--glass-border);
-        }
-
-        footer p {
-            font-size: 13px;
-            color: var(--text-dim);
-        }
-
-        footer a {
-            color: var(--accent);
-            text-decoration: none;
-        }
-
-        /* ═══════ RESPONSIVE ═══════ */
-        @media (max-width: 768px) {
-            .hero { padding: 60px 0 50px; }
-            .hero h1 { font-size: 32px; letter-spacing: -0.5px; }
-            .hero p { font-size: 16px; }
-            .console { padding: 20px; }
-            .report-panel { padding: 20px; }
-            .nav-links .nav-link:not(.primary) { display: none; }
-            .shape { display: none; }
-        }
-
-        /* ═══════ SCREEN READER ═══════ */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0,0,0,0);
-            border: 0;
+            --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+            --bg:#030014;--surface:rgba(255,255,255,0.03);
+            --glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+            --text:#e8ecf4;--dim:rgba(232,236,244,0.5);
+            --blue:#3b82f6;--violet:#7c3aed;--cyan:#06b6d4;
+            --neon-blue:#60a5fa;--neon-violet:#a78bfa;--neon-cyan:#22d3ee;
+            --glow-blue:rgba(59,130,246,0.3);--glow-violet:rgba(124,58,237,0.3);
+            --r:16px;--rs:10px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        html{scroll-behavior:smooth}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+
+        /* NEURAL CANVAS */
+        #neuralCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+        /* GLASS */
+        .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);
+            backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+            box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)}
+
+        /* NAV */
+        nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:14px 0;
+            background:rgba(3,0,20,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b)}
+        .nav-c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+        .logo{font-weight:800;font-size:20px;letter-spacing:-0.5px}
+        .logo .mock{color:var(--text)}.logo .ai{background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .nav-links{display:flex;gap:6px;align-items:center}
+        .nav-links a{text-decoration:none;color:var(--dim);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;transition:all .2s}
+        .nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+        .nav-links a.cta{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-weight:600}
+        .nav-links a.cta:hover{opacity:.9}
+
+        /* CONTAINER */
+        .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 24px}
+
+        /* HERO */
+        .hero{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:120px 0 80px;position:relative}
+        .hero-content{text-align:center;max-width:800px;margin:0 auto}
+        .hero-badge{display:inline-flex;align-items:center;gap:8px;padding:6px 16px 6px 10px;border-radius:100px;font-size:12px;font-weight:600;
+            border:1px solid rgba(124,58,237,0.25);background:rgba(124,58,237,0.08);color:var(--neon-violet);margin-bottom:32px;animation:fadeUp .6s ease}
+        .hero-badge .pulse{width:7px;height:7px;border-radius:50%;background:var(--neon-cyan);box-shadow:0 0 10px var(--neon-cyan);animation:pulse 2s infinite}
+        .hero h1{font-size:clamp(38px,7vw,72px);font-weight:900;line-height:1.05;letter-spacing:-2px;margin-bottom:20px;animation:fadeUp .6s ease .1s both}
+        .hero h1 .grad{background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet),var(--neon-cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .hero p{font-size:18px;color:var(--dim);max-width:560px;margin:0 auto 40px;line-height:1.7;animation:fadeUp .6s ease .2s both}
+        .hero-btns{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;animation:fadeUp .6s ease .3s both}
+
+        /* BUTTONS */
+        .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:var(--rs);font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;border:none;transition:all .25s;text-decoration:none}
+        .btn-p{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;box-shadow:0 4px 24px var(--glow-violet),inset 0 1px 0 rgba(255,255,255,0.15)}
+        .btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 40px var(--glow-violet)}
+        .btn-p:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-g{background:var(--glass);color:var(--text);border:1px solid var(--glass-b);backdrop-filter:blur(12px)}
+        .btn-g:hover{background:rgba(255,255,255,0.07);transform:translateY(-1px)}
+        .btn-g:disabled{opacity:.4;cursor:not-allowed;transform:none}
+        .btn-rec{background:rgba(248,113,113,0.1);color:#f87171;border:1px solid rgba(248,113,113,0.2)}
+        .btn-rec:hover{background:rgba(248,113,113,0.18)}
+        .btn-rec.recording{animation:recPulse 1.2s ease infinite}
+
+        /* 3D ROOM */
+        .room-scene{perspective:1200px;margin:60px auto 0;max-width:900px;animation:fadeUp .8s ease .4s both}
+        .room{transform-style:preserve-3d;transform:rotateX(8deg) rotateY(-5deg);transition:transform .6s ease;animation:roomFloat 8s ease-in-out infinite}
+        .room:hover{transform:rotateX(4deg) rotateY(5deg)}
+
+        .floating-panel{position:relative;border-radius:var(--r);padding:20px;margin-bottom:16px;
+            background:rgba(255,255,255,0.03);border:1px solid var(--glass-b);backdrop-filter:blur(16px);
+            box-shadow:0 8px 32px rgba(0,0,0,0.5),inset 0 1px 0 rgba(255,255,255,0.04);
+            transform:translateZ(var(--z,0px));transition:transform .4s ease,box-shadow .4s ease}
+        .floating-panel:hover{box-shadow:0 12px 48px rgba(0,0,0,0.6),0 0 30px var(--glow-blue)}
+
+        .panel-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:16px}
+        .panel-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--neon-violet);margin-bottom:10px}
+        .panel-title{font-size:14px;font-weight:700;margin-bottom:6px}
+
+        /* Code block in panel */
+        .code-block{background:rgba(0,0,0,0.5);border-radius:8px;padding:14px;font-family:'Fira Code',monospace;font-size:11px;line-height:1.7;color:var(--neon-cyan);overflow:hidden}
+        .code-block .kw{color:var(--neon-violet)}.code-block .fn{color:var(--neon-blue)}.code-block .str{color:#34d399}.code-block .cm{color:var(--dim)}
+
+        /* Metrics in panel */
+        .metrics{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+        .metric{background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:8px;padding:12px;text-align:center}
+        .metric-val{font-size:22px;font-weight:800;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .metric-lbl{font-size:10px;color:var(--dim);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+        /* Confidence bar */
+        .conf-bar{height:6px;border-radius:6px;background:rgba(255,255,255,0.06);overflow:hidden;margin-top:8px}
+        .conf-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--neon-blue),var(--neon-violet),var(--neon-cyan));width:78%;animation:confPulse 3s ease infinite}
+
+        /* FEATURES */
+        .features{padding:120px 0}
+        .section-tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--neon-violet);margin-bottom:12px;text-align:center}
+        .section-h{font-size:clamp(28px,4vw,44px);font-weight:900;text-align:center;letter-spacing:-1px;margin-bottom:14px}
+        .section-p{font-size:16px;color:var(--dim);text-align:center;max-width:500px;margin:0 auto 56px}
+
+        .feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+        .feat-card{padding:28px;transform:translateY(40px);opacity:0;transition:all .6s ease}
+        .feat-card.visible{transform:translateY(0);opacity:1}
+        .feat-card:hover{transform:translateY(-4px) !important;border-color:rgba(255,255,255,0.12)}
+        .feat-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+        .feat-icon.v{background:rgba(124,58,237,0.12)}.feat-icon.b{background:rgba(59,130,246,0.12)}.feat-icon.c{background:rgba(6,182,212,0.12)}.feat-icon.g{background:rgba(52,211,153,0.12)}.feat-icon.a{background:rgba(251,146,60,0.12)}
+        .feat-card h3{font-size:17px;font-weight:700;margin-bottom:8px}
+        .feat-card p{font-size:14px;color:var(--dim);line-height:1.65}
+
+        /* CONSOLE SECTION */
+        #interview-section{padding:80px 0 100px}
+        .console{padding:32px}
+        .con-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+        .con-status{font-size:14px;font-weight:600;color:var(--dim)}
+        .con-status .hl{color:var(--neon-blue)}
+        .prog-wrap{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,0.06);margin-bottom:20px;overflow:hidden}
+        .prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--violet),var(--blue));transition:width .5s ease;width:0%}
+        .q-panel{background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:var(--rs);padding:24px;margin-bottom:18px;min-height:110px;position:relative;overflow:hidden}
+        .q-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--blue),var(--cyan))}
+        .topic-b{display:inline-block;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;background:rgba(124,58,237,0.12);color:var(--neon-violet);border:1px solid rgba(124,58,237,0.2)}
+        .q-text{font-size:16px;font-weight:500;line-height:1.65}
+        .ans-area{width:100%;min-height:150px;padding:16px;border-radius:var(--rs);border:1px solid var(--glass-b);background:rgba(255,255,255,0.02);color:var(--text);font-family:var(--font);font-size:15px;resize:vertical;outline:none;transition:border-color .2s,box-shadow .2s;margin-bottom:16px}
+        .ans-area:focus{border-color:rgba(124,58,237,0.3);box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
+        .ans-area::placeholder{color:var(--dim)}
+        .con-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+        /* FEEDBACK */
+        .fb-panel{display:none;background:rgba(255,255,255,0.03);border:1px solid var(--glass-b);border-radius:var(--rs);padding:20px;margin-bottom:18px;animation:slideIn .3s ease}
+        .fb-panel.vis{display:block}
+        .fb-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+        .sc-circ{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff}
+        .sc-circ.hi{background:linear-gradient(135deg,#34d399,#10b981)}.sc-circ.mi{background:linear-gradient(135deg,var(--violet),#5b3fd4)}.sc-circ.lo{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+        .fb-det p{font-size:13px;color:var(--dim);margin-bottom:4px}.fb-det strong{color:var(--text)}
+
+        /* REPORT */
+        .rpt{display:none;padding:32px;margin-top:20px}
+        .rpt.vis{display:block;animation:fadeUp .5s ease}
+        .rpt-head{display:flex;align-items:center;gap:16px;margin-bottom:24px}
+        .rpt-score{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:#fff;background:linear-gradient(135deg,var(--violet),var(--blue));box-shadow:0 4px 24px var(--glow-violet)}
+        .rpt-info h3{font-size:20px;font-weight:700;margin-bottom:4px}.rpt-info p{font-size:14px;color:var(--dim)}
+        .t-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:20px}
+        .t-card{background:rgba(255,255,255,0.03);border:1px solid var(--glass-b);border-radius:var(--rs);padding:16px}
+        .t-card-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+        .t-name{font-weight:700;font-size:14px}.t-sc{font-weight:800;font-size:17px}
+        .t-sc.hi{color:#34d399}.t-sc.mi{color:var(--neon-violet)}.t-sc.lo{color:#fbbf24}
+        .t-bar{height:4px;border-radius:4px;background:rgba(255,255,255,0.06);margin-bottom:8px;overflow:hidden}
+        .t-bar-f{height:100%;border-radius:4px;transition:width .5s ease}
+        .t-card p{font-size:12px;color:var(--dim);line-height:1.5}
+
+        /* FINAL CTA */
+        .final-cta{padding:120px 0;text-align:center;position:relative}
+        .brain-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:400px;height:400px;
+            background:radial-gradient(circle,var(--glow-violet) 0%,rgba(124,58,237,0.1) 40%,transparent 70%);
+            border-radius:50%;animation:brainPulse 4s ease infinite;pointer-events:none}
+        .final-cta h2{font-size:clamp(28px,5vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:14px;position:relative}
+        .final-cta p{font-size:16px;color:var(--dim);max-width:460px;margin:0 auto 36px;position:relative}
+
+        /* FOOTER */
+        footer{position:relative;z-index:1;text-align:center;padding:36px 24px;border-top:1px solid var(--glass-b)}
+        footer p{font-size:13px;color:var(--dim)}footer a{color:var(--neon-violet);text-decoration:none}
+
+        /* ANIMATIONS */
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes slideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+        @keyframes roomFloat{0%,100%{transform:rotateX(8deg) rotateY(-5deg) translateY(0)}50%{transform:rotateX(6deg) rotateY(-3deg) translateY(-10px)}}
+        @keyframes confPulse{0%,100%{width:78%}50%{width:85%}}
+        @keyframes recPulse{0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.3)}50%{box-shadow:0 0 0 12px rgba(248,113,113,0)}}
+        @keyframes brainPulse{0%,100%{transform:translate(-50%,-50%) scale(1);opacity:.6}50%{transform:translate(-50%,-50%) scale(1.15);opacity:1}}
+        @keyframes typing{from{width:0}to{width:100%}}
+
+        @media(max-width:768px){
+            .hero{padding:100px 0 60px}.panel-grid{grid-template-columns:1fr}
+            .room-scene{display:none}.feat-grid{grid-template-columns:1fr}
+            .nav-links a:not(.cta){display:none}.console{padding:20px}.rpt{padding:20px}
         }
     </style>
 </head>
 <body>
+<canvas id="neuralCanvas"></canvas>
 
-<!-- ═══════ ANIMATED BACKGROUND ═══════ -->
-<div class="scene-bg" aria-hidden="true">
-    <div class="orb3"></div>
-    <div class="grid-floor"></div>
-    <div class="shape shape-1"></div>
-    <div class="shape shape-2"></div>
-    <div class="shape shape-3"></div>
-    <div class="shape shape-4"></div>
-</div>
+<!-- NAV -->
+<nav><div class="nav-c">
+    <div class="logo"><span class="mock">Mock</span><span class="ai">Interviewer</span></div>
+    <div class="nav-links">
+        <a href="#features-section">Features</a>
+        <a href="#interview-section">Console</a>
+        <a href="/advanced/">Advanced</a>
+        <a href="/past-scores/">Dashboard</a>
+        <a href="#interview-section" class="cta" id="navCta">Start Interview</a>
+    </div>
+</div></nav>
 
-<!-- ═══════ NAVIGATION ═══════ -->
-<nav>
-    <div class="nav-inner">
-        <div class="logo">InterviewPro <span>AI</span></div>
-        <div class="nav-links">
-            <a href="#interview-section" class="nav-link">Console</a>
-            <a href="/past-scores/" class="nav-link">Dashboard</a>
-            <a href="#interview-section" class="nav-link primary" id="navStartBtn">Start Interview</a>
+<!-- HERO -->
+<section class="hero"><div class="wrap">
+    <div class="hero-content">
+        <div class="hero-badge"><span class="pulse"></span>AI Interview Simulation Engine</div>
+        <h1>Practice Interviews.<br><span class="grad">Dominate Real Ones.</span></h1>
+        <p>AI-powered mock interviews with real-time feedback, coding challenges, and system design evaluation.</p>
+        <div class="hero-btns">
+            <button class="btn btn-p" onclick="document.getElementById('interview-section').scrollIntoView({behavior:'smooth'})">🎯 Start Mock Interview</button>
+            <a href="/advanced/" class="btn btn-g">🚀 Advanced Interview</a>
         </div>
     </div>
-</nav>
 
-<!-- ═══════ HERO ═══════ -->
-<section class="hero">
-    <div class="container">
-        <div class="hero-badge">
-            <span class="dot"></span>
-            AI-Powered · No Sign-Up Required
-        </div>
-        <h1>
-            Master Your Next<br>
-            <span class="gradient">Technical Interview</span>
-        </h1>
-        <p>Practice with {{ question_bank_size }} curated questions across {{ topics }}. Get instant AI feedback on every answer — completely free, no account needed.</p>
-        <div class="hero-actions">
-            <button class="btn btn-primary" id="heroStartBtn" onclick="document.getElementById('interview-section').scrollIntoView({behavior:'smooth'})">
-                🎯 Start Practicing Now
-            </button>
-            <a href="/past-scores/" class="btn btn-ghost">📊 View Dashboard</a>
-        </div>
-    </div>
-</section>
-
-<!-- ═══════ 3D HERO IMAGE ═══════ -->
-<section style="padding: 0 0 60px; position: relative; z-index: 1;">
-    <div class="container" style="text-align: center;">
-        <img src="{% static 'hero_3d.png' %}" alt="Futuristic AI Interview Simulation" style="
-            max-width: 720px;
-            width: 100%;
-            border-radius: var(--radius);
-            box-shadow: 0 20px 80px rgba(124,92,252,0.2), 0 0 120px rgba(56,189,248,0.08);
-            animation: imageFloat 6s ease-in-out infinite;
-        " />
-    </div>
-</section>
-
-<style>
-    @keyframes imageFloat {
-        0%, 100% { transform: translateY(0) perspective(800px) rotateX(2deg); }
-        50% { transform: translateY(-12px) perspective(800px) rotateX(-1deg); }
-    }
-</style>
-
-<!-- ═══════ INTERVIEW CONSOLE ═══════ -->
-<section id="interview-section">
-    <div class="container">
-        <div class="section-label">Interview Console</div>
-        <div class="section-title">Ready When You Are</div>
-        <p class="section-desc">Hit start, listen to each question, then answer by voice or text. Real-time feedback after every question.</p>
-
-        <div class="console glass">
-            <div class="console-header">
-                <div id="progress" class="console-status">Press <span class="highlight">"Start Interview"</span> to begin.</div>
-                <div style="display:flex;gap:8px;">
-                    <button id="startBtn" class="btn btn-primary">🎯 Start Interview</button>
-                </div>
+    <!-- 3D ROOM -->
+    <div class="room-scene"><div class="room">
+        <div class="panel-grid">
+            <div class="floating-panel" style="--z:30px">
+                <div class="panel-label">📝 Coding Challenge</div>
+                <div class="code-block"><span class="cm">// Two Sum — O(n)</span><br><span class="kw">def</span> <span class="fn">two_sum</span>(nums, target):<br>&nbsp;&nbsp;seen = {}<br>&nbsp;&nbsp;<span class="kw">for</span> i, n <span class="kw">in</span> <span class="fn">enumerate</span>(nums):<br>&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">if</span> target - n <span class="kw">in</span> seen:<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="kw">return</span> [seen[target-n], i]<br>&nbsp;&nbsp;&nbsp;&nbsp;seen[n] = i</div>
             </div>
-
-            <div class="progress-bar-wrap">
-                <div id="progressBar" class="progress-bar-fill"></div>
-            </div>
-
-            <!-- Feedback from previous question -->
-            <div id="feedbackPanel" class="feedback-panel">
-                <div class="feedback-score">
-                    <div id="feedbackScore" class="score-circle high">0</div>
-                    <div>
-                        <strong id="feedbackLabel">Previous Answer Feedback</strong>
-                        <p id="feedbackText" style="font-size:13px;color:var(--text-dim);margin:0;"></p>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="floating-panel" style="--z:20px">
+                    <div class="panel-label">📊 Real-time Feedback</div>
+                    <div class="metrics">
+                        <div class="metric"><div class="metric-val">78%</div><div class="metric-lbl">Confidence</div></div>
+                        <div class="metric"><div class="metric-val">8.4</div><div class="metric-lbl">Score</div></div>
+                        <div class="metric"><div class="metric-val">12:34</div><div class="metric-lbl">Timer</div></div>
+                        <div class="metric"><div class="metric-val">Q7</div><div class="metric-lbl">Progress</div></div>
                     </div>
                 </div>
-                <div class="feedback-details">
-                    <p id="feedbackStrength"></p>
-                    <p id="feedbackImprovement"></p>
+                <div class="floating-panel" style="--z:10px">
+                    <div class="panel-label">🧠 AI Confidence Meter</div>
+                    <div class="panel-title">Technical Accuracy</div>
+                    <div class="conf-bar"><div class="conf-fill"></div></div>
+                    <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:10px;color:var(--dim)"><span>Beginner</span><span>FAANG Ready</span></div>
                 </div>
             </div>
-
-            <!-- Question display -->
-            <div class="question-panel">
-                <div id="topic" class="topic-badge">—</div>
-                <div id="question" class="question-text">Your question will appear here after you start the interview.</div>
-            </div>
-
-            <!-- Answer input -->
-            <textarea id="answer" class="answer-area" placeholder="Type or dictate your answer here..."></textarea>
-
-            <div class="console-actions">
-                <button id="submitBtn" class="btn btn-primary" disabled>Submit Answer →</button>
-                <button id="recordBtn" class="btn btn-record" disabled>🎤 Voice Input</button>
+        </div>
+        <div class="floating-panel" style="--z:5px">
+            <div class="panel-label">🤖 AI Interviewer</div>
+            <div style="display:flex;align-items:center;gap:12px">
+                <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--blue));display:flex;align-items:center;justify-content:center;font-size:16px">🤖</div>
+                <div><div style="font-size:13px;font-weight:600">AI Interviewer</div><div style="font-size:12px;color:var(--dim)">Can you explain the time complexity of your solution and suggest an optimization?</div></div>
             </div>
         </div>
+    </div></div>
+</div></section>
 
-        <!-- Final Report -->
-        <div id="report" class="report-panel glass"></div>
+<!-- FEATURES -->
+<section class="features" id="features-section"><div class="wrap">
+    <div class="section-tag">Capabilities</div>
+    <div class="section-h">Everything You Need to Ace It</div>
+    <p class="section-p">From coding rounds to system design — practice every interview format with AI precision.</p>
+    <div class="feat-grid">
+        <div class="feat-card glass"><div class="feat-icon v">🤖</div><h3>AI Interviewer</h3><p>A context-aware AI that asks follow-up questions, challenges your reasoning, and adapts difficulty in real-time.</p></div>
+        <div class="feat-card glass"><div class="feat-icon b">💻</div><h3>Coding Round Simulation</h3><p>Practice {{ question_bank_size }} curated problems with live evaluation. Get scored on correctness, efficiency, and clarity.</p></div>
+        <div class="feat-card glass"><div class="feat-icon c">🏗️</div><h3>System Design Practice</h3><p>Design distributed systems, discuss trade-offs, and receive structured feedback on your architecture decisions.</p></div>
+        <div class="feat-card glass"><div class="feat-icon g">⚡</div><h3>Instant AI Feedback</h3><p>Every answer is evaluated semantically — not just keywords. Get strengths, improvements, and a confidence score instantly.</p></div>
+        <div class="feat-card glass"><div class="feat-icon a">📈</div><h3>Performance Analytics</h3><p>Track progress across {{ topics }}. Identify weak areas and watch your interview readiness grow over time.</p></div>
     </div>
-</section>
+</div></section>
 
-<!-- ═══════ FOOTER ═══════ -->
-<footer>
-    <p>Mock Interviewer Pro — Built with Django & AI · <a href="/past-scores/">View Dashboard</a></p>
-</footer>
+<!-- INTERVIEW CONSOLE -->
+<section id="interview-section"><div class="wrap">
+    <div class="section-tag">Interview Console</div>
+    <div class="section-h">Ready When You Are</div>
+    <p class="section-p">Hit start, listen, then answer by voice or text. Real-time AI feedback after every question.</p>
+    <div class="console glass">
+        <div class="con-head">
+            <div id="progress" class="con-status">Press <span class="hl">"Start Interview"</span> to begin.</div>
+            <button id="startBtn" class="btn btn-p">🎯 Start Interview</button>
+        </div>
+        <div class="prog-wrap"><div id="progressBar" class="prog-fill"></div></div>
+        <div id="feedbackPanel" class="fb-panel">
+            <div class="fb-row"><div id="feedbackScore" class="sc-circ hi">0</div><div><strong id="feedbackLabel">Previous Answer</strong><p id="feedbackText" style="margin:0"></p></div></div>
+            <div class="fb-det"><p id="feedbackStrength"></p><p id="feedbackImprovement"></p></div>
+        </div>
+        <div class="q-panel"><div id="topic" class="topic-b">—</div><div id="question" class="q-text">Your question will appear here after you start the interview.</div></div>
+        <textarea id="answer" class="ans-area" placeholder="Type or dictate your answer here..."></textarea>
+        <div class="con-actions">
+            <button id="submitBtn" class="btn btn-p" disabled>Submit Answer →</button>
+            <button id="recordBtn" class="btn btn-rec" disabled>🎤 Voice Input</button>
+        </div>
+    </div>
+    <div id="report" class="rpt glass"></div>
+</div></section>
 
-<!-- ═══════ SCRIPTS ═══════ -->
+<!-- FINAL CTA -->
+<section class="final-cta"><div class="wrap">
+    <div class="brain-glow"></div>
+    <h2>Your Next Interview<br><span class="grad">Starts Here.</span></h2>
+    <p>Join thousands of developers who practiced their way to FAANG offers. No sign-up required.</p>
+    <div class="hero-btns" style="position:relative">
+        <button class="btn btn-p" onclick="document.getElementById('interview-section').scrollIntoView({behavior:'smooth'})">🚀 Start Practicing Now</button>
+        <a href="/past-scores/" class="btn btn-g">📊 View Dashboard</a>
+    </div>
+</div></section>
+
+<footer><p>MockInterviewer — Built with AI · <a href="/past-scores/">Dashboard</a></p></footer>
+
 <script>
-    const STORAGE_KEY = "mock_interview_attempts_v1";
-
-    const startBtn = document.getElementById("startBtn");
-    const recordBtn = document.getElementById("recordBtn");
-    const submitBtn = document.getElementById("submitBtn");
-    const answerBox = document.getElementById("answer");
-    const questionEl = document.getElementById("question");
-    const topicEl = document.getElementById("topic");
-    const progressEl = document.getElementById("progress");
-    const progressBar = document.getElementById("progressBar");
-    const reportEl = document.getElementById("report");
-    const feedbackPanel = document.getElementById("feedbackPanel");
-    const feedbackScore = document.getElementById("feedbackScore");
-    const feedbackText = document.getElementById("feedbackText");
-    const feedbackStrength = document.getElementById("feedbackStrength");
-    const feedbackImprovement = document.getElementById("feedbackImprovement");
-
-    let currentQuestion = null;
-    let recognition = null;
-    let totalQuestions = 25;
-    let questionAudioPlayed = false;
-    let currentIndex = 0;
-
-    // ─── Speech Recognition ───
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = "en-US";
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-        recognition.onresult = (event) => {
-            answerBox.value = event.results[0][0].transcript;
-        };
-        recognition.onerror = () => {
-            progressEl.textContent = "Voice capture failed. You can type your answer.";
-            recordBtn.textContent = "🎤 Voice Input";
-            recordBtn.classList.remove("recording");
-        };
-        recognition.onend = () => {
-            recordBtn.textContent = "🎤 Voice Input";
-            recordBtn.classList.remove("recording");
-        };
+/* ═══ NEURAL NETWORK CANVAS ═══ */
+(function(){
+    const c=document.getElementById('neuralCanvas'),ctx=c.getContext('2d');
+    let w,h,nodes=[],mouse={x:-1000,y:-1000};
+    function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight;initNodes()}
+    function initNodes(){
+        nodes=[];const count=Math.min(80,Math.floor(w*h/12000));
+        for(let i=0;i<count;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5});
     }
-
-    // ─── Helpers ───
-    function getCookie(name) {
-        const cookieValue = `; ${document.cookie}`;
-        const parts = cookieValue.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(";").shift();
-        return "";
-    }
-
-    function speakMandatory(text) {
-        return new Promise((resolve, reject) => {
-            if (!window.speechSynthesis || !text) {
-                reject(new Error("Speech synthesis is unavailable. Voice question is mandatory."));
-                return;
-            }
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.onend = () => resolve();
-            utterance.onerror = () => reject(new Error("Unable to play question audio."));
-            window.speechSynthesis.cancel();
-            window.speechSynthesis.speak(utterance);
+    function draw(){
+        ctx.clearRect(0,0,w,h);
+        nodes.forEach(n=>{
+            n.x+=n.vx;n.y+=n.vy;
+            if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+            ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle='rgba(124,58,237,0.35)';ctx.fill();
         });
-    }
-
-    function safeFixed(value, digits = 1) {
-        return Number(value || 0).toFixed(digits);
-    }
-
-    function loadAttempts() {
-        try {
-            const raw = localStorage.getItem(STORAGE_KEY);
-            if (!raw) return [];
-            const parsed = JSON.parse(raw);
-            return Array.isArray(parsed) ? parsed : [];
-        } catch { return []; }
-    }
-
-    function saveAttempt(report) {
-        const attempts = loadAttempts();
-        attempts.unshift({ completed_at: new Date().toISOString(), report });
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(attempts.slice(0, 100)));
-    }
-
-    // ─── Show Feedback ───
-    function showFeedback(evaluation) {
-        if (!evaluation) return;
-        feedbackPanel.classList.add("visible");
-        const score = evaluation.score || 0;
-        feedbackScore.textContent = score;
-        feedbackScore.className = "score-circle " + (score >= 8 ? "high" : score >= 5 ? "mid" : "low");
-        feedbackText.textContent = evaluation.feedback || "";
-        feedbackStrength.innerHTML = evaluation.strengths ? `<strong>✓ Strengths:</strong> ${evaluation.strengths}` : "";
-        feedbackImprovement.innerHTML = evaluation.improvement ? `<strong>△ Improve:</strong> ${evaluation.improvement}` : "";
-    }
-
-    function hideFeedback() {
-        feedbackPanel.classList.remove("visible");
-    }
-
-    // ─── Render Final Report ───
-    function renderFinalReport(report) {
-        const overall = safeFixed(report.overall_score);
-        const scoreClass = report.overall_score >= 8 ? "high" : report.overall_score >= 5 ? "mid" : "low";
-
-        let topicCards = "";
-        for (const [topic, info] of Object.entries(report.topic_breakdown || {})) {
-            const avg = safeFixed(info.average);
-            const cls = info.average >= 8 ? "high" : info.average >= 6 ? "mid" : "low";
-            const barColor = info.average >= 8 ? "var(--green)" : info.average >= 6 ? "var(--accent)" : "var(--amber)";
-            topicCards += `
-                <div class="topic-card">
-                    <div class="topic-card-header">
-                        <span class="topic-card-name">${topic}</span>
-                        <span class="topic-card-score ${cls}">${avg}</span>
-                    </div>
-                    <div class="topic-card-bar">
-                        <div class="topic-card-bar-fill" style="width:${info.average * 10}%;background:${barColor}"></div>
-                    </div>
-                    <p>${info.feedback}</p>
-                </div>
-            `;
+        for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+            const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+            if(d<150){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(96,165,250,${.08*(1-d/150)})`;ctx.lineWidth=.5;ctx.stroke()}
         }
-
-        reportEl.innerHTML = `
-            <div class="report-header">
-                <div class="report-overall-score">${overall}</div>
-                <div class="report-overall-text">
-                    <h3>Interview Complete!</h3>
-                    <p>${report.overall_feedback}</p>
-                </div>
-            </div>
-            <div class="topic-grid">${topicCards}</div>
-            <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
-                <button class="btn btn-primary" onclick="location.reload()">🔄 Retry Interview</button>
-                <a href="/past-scores/" class="btn btn-ghost">📊 View Dashboard</a>
-            </div>
-        `;
-        reportEl.classList.add("visible");
+        const mx=mouse.x,my=mouse.y;
+        nodes.forEach(n=>{
+            const dx=n.x-mx,dy=n.y-my,d=Math.sqrt(dx*dx+dy*dy);
+            if(d<200){ctx.beginPath();ctx.moveTo(n.x,n.y);ctx.lineTo(mx,my);ctx.strokeStyle=`rgba(34,211,238,${.12*(1-d/200)})`;ctx.lineWidth=.6;ctx.stroke()}
+        });
+        requestAnimationFrame(draw);
     }
+    window.addEventListener('resize',resize);
+    document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
+    resize();draw();
+})();
 
-    // ─── Show Question ───
-    function showQuestion(payload) {
-        currentQuestion = payload.question;
-        totalQuestions = payload.total_questions || totalQuestions;
-        currentIndex = payload.question_index || 1;
-        questionAudioPlayed = false;
+/* ═══ SCROLL ANIMATIONS ═══ */
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15});
+document.querySelectorAll('.feat-card').forEach((el,i)=>{el.style.transitionDelay=`${i*.1}s`;obs.observe(el)});
 
-        questionEl.textContent = currentQuestion.prompt;
-        topicEl.textContent = currentQuestion.topic;
-        progressEl.innerHTML = `Question <span class="highlight">${currentIndex}</span> of <span class="highlight">${totalQuestions}</span> — listening to question...`;
-        progressBar.style.width = `${((currentIndex - 1) / totalQuestions) * 100}%`;
-        answerBox.value = "";
-        recordBtn.disabled = !recognition;
-        submitBtn.disabled = true;
-
-        speakMandatory(currentQuestion.prompt)
-            .then(() => {
-                questionAudioPlayed = true;
-                progressEl.innerHTML = `Question <span class="highlight">${currentIndex}</span> of <span class="highlight">${totalQuestions}</span>`;
-                submitBtn.disabled = false;
-            })
-            .catch((error) => {
-                progressEl.textContent = error.message;
-                submitBtn.disabled = true;
-            });
-    }
-
-    // ─── Event Listeners ───
-    startBtn.addEventListener("click", async () => {
-        try {
-            const res = await fetch("/api/start/");
-            if (!res.ok) throw new Error(`Start failed (${res.status})`);
-            const data = await res.json();
-            reportEl.classList.remove("visible");
-            reportEl.innerHTML = "";
-            hideFeedback();
-            showQuestion(data);
-        } catch (error) {
-            progressEl.textContent = `Unable to start interview: ${error.message}`;
-        }
-    });
-
-    document.getElementById("navStartBtn").addEventListener("click", (e) => {
-        e.preventDefault();
-        document.getElementById("interview-section").scrollIntoView({ behavior: "smooth" });
-        setTimeout(() => startBtn.click(), 500);
-    });
-
-    recordBtn.addEventListener("click", () => {
-        if (!recognition) return;
-        recordBtn.textContent = "⏺ Listening...";
-        recordBtn.classList.add("recording");
-        recognition.start();
-    });
-
-    submitBtn.addEventListener("click", async () => {
-        try {
-            if (!questionAudioPlayed) {
-                progressEl.textContent = "You must hear the question audio before submitting.";
-                return;
-            }
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Evaluating...";
-
-            const answer = answerBox.value.trim();
-            const csrfToken = getCookie("csrftoken");
-            const res = await fetch("/api/answer/", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken,
-                },
-                body: JSON.stringify({ answer }),
-            });
-            if (!res.ok) throw new Error(`Submit failed (${res.status})`);
-
-            const data = await res.json();
-            if (data.finished) {
-                submitBtn.disabled = true;
-                recordBtn.disabled = true;
-                progressEl.innerHTML = `<span class="highlight">Interview finished!</span> Report saved in your browser.`;
-                progressBar.style.width = "100%";
-
-                if (data.last_evaluation) showFeedback(data.last_evaluation);
-                renderFinalReport(data.report);
-                saveAttempt(data.report);
-                submitBtn.textContent = "Submit Answer →";
-                return;
-            }
-
-            // Show feedback for the answered question
-            if (data.evaluation) showFeedback(data.evaluation);
-            showQuestion(data);
-            submitBtn.textContent = "Submit Answer →";
-        } catch (error) {
-            progressEl.textContent = `Unable to submit answer: ${error.message}`;
-            submitBtn.disabled = false;
-            submitBtn.textContent = "Submit Answer →";
-        }
-    });
+/* ═══ INTERVIEW ENGINE ═══ */
+const STORAGE_KEY="mock_interview_attempts_v1";
+const startBtn=document.getElementById("startBtn"),recordBtn=document.getElementById("recordBtn"),submitBtn=document.getElementById("submitBtn"),answerBox=document.getElementById("answer"),questionEl=document.getElementById("question"),topicEl=document.getElementById("topic"),progressEl=document.getElementById("progress"),progressBar=document.getElementById("progressBar"),reportEl=document.getElementById("report"),fbPanel=document.getElementById("feedbackPanel"),fbScore=document.getElementById("feedbackScore"),fbText=document.getElementById("feedbackText"),fbStr=document.getElementById("feedbackStrength"),fbImp=document.getElementById("feedbackImprovement");
+let curQ=null,recog=null,totalQ=25,audioPlayed=false,curIdx=0;
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){recog=new SR();recog.lang="en-US";recog.interimResults=false;recog.maxAlternatives=1;
+    recog.onresult=e=>{answerBox.value=e.results[0][0].transcript};
+    recog.onerror=()=>{progressEl.textContent="Voice failed. Type your answer.";recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording")};
+    recog.onend=()=>{recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording")}
+}
+function getCk(n){const v=`; ${document.cookie}`;const p=v.split(`; ${n}=`);if(p.length===2)return p.pop().split(";").shift();return""}
+function speak(t){return new Promise((res,rej)=>{if(!window.speechSynthesis||!t){rej(new Error("Speech unavailable."));return}const u=new SpeechSynthesisUtterance(t);u.onend=()=>res();u.onerror=()=>rej(new Error("Audio failed."));window.speechSynthesis.cancel();window.speechSynthesis.speak(u)})}
+function sf(v,d=1){return Number(v||0).toFixed(d)}
+function loadA(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return[];const p=JSON.parse(r);return Array.isArray(p)?p:[]}catch{return[]}}
+function saveA(r){const a=loadA();a.unshift({completed_at:new Date().toISOString(),report:r});localStorage.setItem(STORAGE_KEY,JSON.stringify(a.slice(0,100)))}
+function showFb(ev){if(!ev)return;fbPanel.classList.add("vis");const s=ev.score||0;fbScore.textContent=s;fbScore.className="sc-circ "+(s>=8?"hi":s>=5?"mi":"lo");fbText.textContent=ev.feedback||"";fbStr.innerHTML=ev.strengths?`<strong>✓ Strengths:</strong> ${ev.strengths}`:"";fbImp.innerHTML=ev.improvement?`<strong>△ Improve:</strong> ${ev.improvement}`:""}
+function hideFb(){fbPanel.classList.remove("vis")}
+function renderRpt(r){const o=sf(r.overall_score);let tc="";for(const[t,i]of Object.entries(r.topic_breakdown||{})){const a=sf(i.average),cl=i.average>=8?"hi":i.average>=6?"mi":"lo",bc=i.average>=8?"#34d399":i.average>=6?"var(--neon-violet)":"#fbbf24";tc+=`<div class="t-card"><div class="t-card-h"><span class="t-name">${t}</span><span class="t-sc ${cl}">${a}</span></div><div class="t-bar"><div class="t-bar-f" style="width:${i.average*10}%;background:${bc}"></div></div><p>${i.feedback}</p></div>`}
+    reportEl.innerHTML=`<div class="rpt-head"><div class="rpt-score">${o}</div><div class="rpt-info"><h3>Interview Complete!</h3><p>${r.overall_feedback}</p></div></div><div class="t-grid">${tc}</div><div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap"><button class="btn btn-p" onclick="location.reload()">🔄 Retry</button><a href="/past-scores/" class="btn btn-g">📊 Dashboard</a></div>`;reportEl.classList.add("vis")}
+function showQ(d){curQ=d.question;totalQ=d.total_questions||totalQ;curIdx=d.question_index||1;audioPlayed=false;questionEl.textContent=curQ.prompt;topicEl.textContent=curQ.topic;progressEl.innerHTML=`Question <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span> — listening...`;progressBar.style.width=`${((curIdx-1)/totalQ)*100}%`;answerBox.value="";recordBtn.disabled=!recog;submitBtn.disabled=true;
+    speak(curQ.prompt).then(()=>{audioPlayed=true;progressEl.innerHTML=`Question <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span>`;submitBtn.disabled=false}).catch(e=>{progressEl.textContent=e.message;submitBtn.disabled=true})}
+startBtn.addEventListener("click",async()=>{try{const r=await fetch("/api/start/");if(!r.ok)throw new Error(`${r.status}`);const d=await r.json();reportEl.classList.remove("vis");reportEl.innerHTML="";hideFb();showQ(d)}catch(e){progressEl.textContent=`Error: ${e.message}`}});
+document.getElementById("navCta").addEventListener("click",e=>{e.preventDefault();document.getElementById("interview-section").scrollIntoView({behavior:"smooth"});setTimeout(()=>startBtn.click(),500)});
+recordBtn.addEventListener("click",()=>{if(!recog)return;recordBtn.textContent="⏺ Listening...";recordBtn.classList.add("recording");recog.start()});
+submitBtn.addEventListener("click",async()=>{try{if(!audioPlayed){progressEl.textContent="Listen to the question first.";return}submitBtn.disabled=true;submitBtn.textContent="Evaluating...";const a=answerBox.value.trim(),r=await fetch("/api/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:a})});if(!r.ok)throw new Error(`${r.status}`);const d=await r.json();if(d.finished){submitBtn.disabled=true;recordBtn.disabled=true;progressEl.innerHTML=`<span class="hl">Interview finished!</span> Report saved.`;progressBar.style.width="100%";if(d.last_evaluation)showFb(d.last_evaluation);renderRpt(d.report);saveA(d.report);submitBtn.textContent="Submit Answer →";return}if(d.evaluation)showFb(d.evaluation);showQ(d);submitBtn.textContent="Submit Answer →"}catch(e){progressEl.textContent=`Error: ${e.message}`;submitBtn.disabled=false;submitBtn.textContent="Submit Answer →"}});
 </script>
 </body>
 </html>

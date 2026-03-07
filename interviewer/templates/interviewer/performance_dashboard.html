@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Dashboard — MockInterviewer</title>
+    <meta name="description" content="Track your advanced interview performance with detailed analytics.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root{--font:'Inter',-apple-system,sans-serif;--bg:#030014;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+            --text:#e8ecf4;--dim:rgba(232,236,244,0.5);--blue:#3b82f6;--violet:#7c3aed;--cyan:#06b6d4;
+            --neon-blue:#60a5fa;--neon-violet:#a78bfa;--neon-cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;
+            --glow-v:rgba(124,58,237,0.3);--r:16px;--rs:10px}
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+        .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);
+            backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+            box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)}
+
+        nav{position:sticky;top:0;z-index:100;padding:14px 0;background:rgba(3,0,20,0.7);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b)}
+        .nav-c{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between}
+        .logo{font-weight:800;font-size:20px}.logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
+        .nav-links{display:flex;gap:6px;align-items:center}
+        .nav-links a{text-decoration:none;color:var(--dim);font-size:13px;font-weight:500;padding:7px 14px;border-radius:8px;transition:all .2s}
+        .nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.05)}
+        .nav-links a.active{background:rgba(124,58,237,0.15);color:var(--neon-violet)}
+        .nav-links a.cta{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-weight:600}
+
+        .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 24px}
+        .page-head{padding:40px 0 24px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
+        .page-head h1{font-size:30px;font-weight:900;letter-spacing:-.5px}
+        .page-head p{font-size:14px;color:var(--dim);margin-top:4px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--rs);font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+        .btn-p{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;box-shadow:0 4px 20px var(--glow-v)}.btn-p:hover{transform:translateY(-1px)}
+        .btn-g{background:var(--glass);color:var(--text);border:1px solid var(--glass-b)}.btn-g:hover{background:rgba(255,255,255,0.06)}
+        .btn-d{background:rgba(248,113,113,0.1);color:var(--red);border:1px solid rgba(248,113,113,0.2)}.btn-d:hover{background:rgba(248,113,113,0.18)}
+
+        /* KPI */
+        .kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+        .kpi{padding:20px}
+        .kpi-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:8px}
+        .kpi-val{font-size:28px;font-weight:900;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+        .kpi-sub{font-size:11px;color:var(--dim);margin-top:4px}
+
+        /* CHART GRID */
+        .chart-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:24px}
+        .chart-panel{padding:20px}
+        .chart-panel h2{font-size:15px;font-weight:700;margin-bottom:14px}
+        canvas{width:100%!important;border-radius:var(--rs);background:rgba(255,255,255,0.01)}
+
+        /* Q-BY-Q */
+        .qbq{margin-bottom:48px}
+        .qbq h2{font-size:17px;font-weight:700;margin-bottom:16px}
+        .qbq-card{padding:16px;margin-bottom:10px;display:grid;grid-template-columns:48px 1fr auto;gap:14px;align-items:center;cursor:pointer;transition:transform .2s}
+        .qbq-card:hover{transform:translateX(4px)}
+        .qbq-num{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff}
+        .qbq-num.hi{background:linear-gradient(135deg,#34d399,#10b981)}.qbq-num.mi{background:linear-gradient(135deg,var(--violet),#5b3fd4)}.qbq-num.lo{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+        .qbq-mid{overflow:hidden}
+        .qbq-mid strong{font-size:14px;display:block;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+        .qbq-mid span{font-size:12px;color:var(--dim)}
+        .qbq-score{font-size:20px;font-weight:800}
+        .qbq-score.hi{color:var(--green)}.qbq-score.mi{color:var(--neon-violet)}.qbq-score.lo{color:var(--amber)}
+        .qbq-detail{display:none;padding:16px;margin:-10px 0 10px;border-top:1px solid var(--glass-b);font-size:13px;color:var(--dim);line-height:1.7}
+        .qbq-detail.vis{display:block}
+        .qbq-detail strong{color:var(--text)}
+
+        /* SESSIONS */
+        .sessions{margin-bottom:48px}
+        .sessions h2{font-size:17px;font-weight:700;margin-bottom:16px}
+        .sess-card{padding:16px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;transition:transform .2s}
+        .sess-card:hover{transform:translateX(4px)}
+        .sess-left{display:flex;align-items:center;gap:14px}
+        .sess-sc{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff;font-size:15px}
+        .sess-sc.hi{background:linear-gradient(135deg,var(--green),#10b981)}.sess-sc.mi{background:linear-gradient(135deg,var(--violet),var(--blue))}.sess-sc.lo{background:linear-gradient(135deg,var(--amber),#f59e0b)}
+        .sess-info strong{font-size:14px;display:block;margin-bottom:2px}.sess-info span{font-size:12px;color:var(--dim)}
+        .sess-right{font-size:12px;color:var(--dim)}
+
+        footer{position:relative;z-index:1;text-align:center;padding:36px 24px;border-top:1px solid var(--glass-b)}
+        footer p{font-size:13px;color:var(--dim)}footer a{color:var(--neon-violet);text-decoration:none}
+
+        @media(max-width:900px){.kpi-row{grid-template-columns:repeat(2,1fr)}.chart-grid{grid-template-columns:1fr}}
+        @media(max-width:600px){.kpi-row{grid-template-columns:1fr}.nav-links a:not(.cta){display:none}}
+    </style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+
+<nav><div class="nav-c">
+    <div class="logo"><span class="m">Mock</span><span class="a">Interviewer</span></div>
+    <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/advanced/">Advanced</a>
+        <a href="/past-scores/">Basic Dashboard</a>
+        <a href="/performance/" class="active">Performance</a>
+        <a href="/advanced/" class="cta">New Interview</a>
+    </div>
+</div></nav>
+
+<div class="wrap">
+    <div class="page-head">
+        <div><h1>Performance Dashboard</h1><p>Advanced interview analytics and detailed question-by-question feedback.</p></div>
+        <div style="display:flex;gap:8px">
+            <a href="/advanced/" class="btn btn-p">🎯 New Interview</a>
+            <button id="clearBtn" class="btn btn-d">🗑 Clear Data</button>
+        </div>
+    </div>
+
+    <!-- KPI -->
+    <div class="kpi-row">
+        <div class="kpi glass"><div class="kpi-label">Overall Score</div><div id="kOverall" class="kpi-val">—</div><div id="kOverallSub" class="kpi-sub"></div></div>
+        <div class="kpi glass"><div class="kpi-label">DSA Accuracy</div><div id="kDSA" class="kpi-val">—</div></div>
+        <div class="kpi glass"><div class="kpi-label">Avg Speed</div><div id="kSpeed" class="kpi-val">—</div><div class="kpi-sub">sec / question</div></div>
+        <div class="kpi glass"><div class="kpi-label">Debug Accuracy</div><div id="kDebug" class="kpi-val">—</div></div>
+        <div class="kpi glass"><div class="kpi-label">Completion</div><div id="kCompl" class="kpi-val">—</div></div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="chart-grid">
+        <div class="chart-panel glass"><h2>🕸️ Skill Radar</h2><canvas id="radarChart" height="280"></canvas></div>
+        <div class="chart-panel glass"><h2>📊 Topic Performance</h2><canvas id="barChart" height="280"></canvas></div>
+        <div class="chart-panel glass"><h2>📈 Improvement Trend</h2><canvas id="lineChart" height="280"></canvas></div>
+    </div>
+
+    <!-- Q-BY-Q -->
+    <div class="qbq"><h2>📝 Question-by-Question Breakdown</h2><div id="qbqList"></div></div>
+
+    <!-- PREVIOUS SESSIONS -->
+    <div class="sessions"><h2>📚 Previous Sessions</h2><div id="sessList"></div></div>
+</div>
+
+<footer><p>MockInterviewer — <a href="/">Back to Home</a> · <a href="/advanced/">Start Advanced Interview</a></p></footer>
+
+<script>
+const STORAGE_KEY="mock_adv_interviews_v1";
+const COLORS={violet:"#a78bfa",blue:"#60a5fa",cyan:"#22d3ee",green:"#34d399",amber:"#fbbf24",red:"#f87171",dim:"rgba(232,236,244,0.15)",text:"#e8ecf4",dimText:"rgba(232,236,244,0.5)"};
+function sf(v,d=1){return Number(v||0).toFixed(d)}
+function loadAll(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]")}catch{return[]}}
+function scCls(s){return s>=8?"hi":s>=5?"mi":"lo"}
+function fmtDate(d){try{return new Date(d).toLocaleDateString("en-US",{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}catch{return""}}
+
+function renderKPIs(latest){
+    const m=latest?.metrics||{};
+    document.getElementById("kOverall").textContent=sf(latest?.overall_score||0);
+    document.getElementById("kOverallSub").textContent=`${m.answered||0} of ${m.total_questions||0} answered`;
+    document.getElementById("kDSA").textContent=(m.dsa_accuracy||0)+"%";
+    document.getElementById("kSpeed").textContent=sf(m.avg_time||0);
+    document.getElementById("kDebug").textContent=(m.debug_accuracy||0)+"%";
+    document.getElementById("kCompl").textContent=(m.completion_pct||0)+"%";
+}
+
+function drawRadar(tb){
+    const canvas=document.getElementById("radarChart"),ctx=canvas.getContext("2d");
+    const dpr=devicePixelRatio||1;canvas.width=canvas.offsetWidth*dpr;canvas.height=canvas.offsetHeight*dpr;ctx.scale(dpr,dpr);
+    const w=canvas.offsetWidth,h=canvas.offsetHeight,cx=w/2,cy=h/2,r=Math.min(w,h)*0.36;
+    const topics=Object.keys(tb);const n=topics.length;
+    if(!n){ctx.fillStyle=COLORS.dimText;ctx.font="600 14px Inter";ctx.textAlign="center";ctx.fillText("No data yet",cx,cy);return}
+    const step=Math.PI*2/n;
+    // Grid
+    for(let ring=1;ring<=5;ring++){ctx.beginPath();const rr=r*ring/5;
+        for(let i=0;i<=n;i++){const a=-Math.PI/2+step*i;const x=cx+rr*Math.cos(a);const y=cy+rr*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)}
+        ctx.closePath();ctx.strokeStyle=COLORS.dim;ctx.lineWidth=.5;ctx.stroke()}
+    // Axes
+    topics.forEach((t,i)=>{const a=-Math.PI/2+step*i;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));ctx.strokeStyle=COLORS.dim;ctx.lineWidth=.5;ctx.stroke();
+        const lx=cx+(r+20)*Math.cos(a),ly=cy+(r+20)*Math.sin(a);ctx.fillStyle=COLORS.dimText;ctx.font="600 10px Inter";ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(t,lx,ly)});
+    // Data
+    ctx.beginPath();topics.forEach((t,i)=>{const a=-Math.PI/2+step*i;const v=Math.max(0,Math.min(10,tb[t].average))/10;
+        const x=cx+r*v*Math.cos(a),y=cy+r*v*Math.sin(a);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y)});
+    ctx.closePath();ctx.fillStyle="rgba(124,58,237,0.15)";ctx.fill();ctx.strokeStyle=COLORS.violet;ctx.lineWidth=2;ctx.stroke();
+    // Dots
+    topics.forEach((t,i)=>{const a=-Math.PI/2+step*i;const v=Math.max(0,Math.min(10,tb[t].average))/10;
+        ctx.beginPath();ctx.arc(cx+r*v*Math.cos(a),cy+r*v*Math.sin(a),4,0,Math.PI*2);ctx.fillStyle=COLORS.violet;ctx.fill()});
+}
+
+function drawBar(tb){
+    const canvas=document.getElementById("barChart"),ctx=canvas.getContext("2d");
+    const dpr=devicePixelRatio||1;canvas.width=canvas.offsetWidth*dpr;canvas.height=canvas.offsetHeight*dpr;ctx.scale(dpr,dpr);
+    const w=canvas.offsetWidth,h=canvas.offsetHeight;
+    const topics=Object.keys(tb);if(!topics.length){ctx.fillStyle=COLORS.dimText;ctx.font="600 14px Inter";ctx.textAlign="center";ctx.fillText("No data",w/2,h/2);return}
+    const pad={l:40,r:16,t:16,b:40};const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+    const bw=Math.min(40,cw/topics.length*.6);const gap=(cw-bw*topics.length)/(topics.length+1);
+    // Grid
+    for(let i=0;i<=5;i++){const y=pad.t+ch*(i/5);ctx.strokeStyle=COLORS.dim;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+        ctx.fillStyle=COLORS.dimText;ctx.font="500 10px Inter";ctx.textAlign="right";ctx.fillText(String(10-i*2),pad.l-6,y+4)}
+    // Bars
+    const colors=[COLORS.violet,COLORS.blue,COLORS.cyan,COLORS.green,COLORS.amber,COLORS.red];
+    topics.forEach((t,i)=>{const x=pad.l+gap*(i+1)+bw*i;const v=Math.max(0,Math.min(10,tb[t].average));const bh=ch*v/10;
+        const grad=ctx.createLinearGradient(x,pad.t+ch-bh,x,pad.t+ch);grad.addColorStop(0,colors[i%colors.length]);grad.addColorStop(1,"rgba(124,58,237,0.3)");
+        ctx.fillStyle=grad;ctx.beginPath();ctx.roundRect(x,pad.t+ch-bh,bw,bh,4);ctx.fill();
+        ctx.fillStyle=COLORS.dimText;ctx.font="600 9px Inter";ctx.textAlign="center";ctx.fillText(t,x+bw/2,h-pad.b+16);
+        ctx.fillStyle=colors[i%colors.length];ctx.font="700 11px Inter";ctx.fillText(sf(v),x+bw/2,pad.t+ch-bh-6)});
+}
+
+function drawLine(history){
+    const canvas=document.getElementById("lineChart"),ctx=canvas.getContext("2d");
+    const dpr=devicePixelRatio||1;canvas.width=canvas.offsetWidth*dpr;canvas.height=canvas.offsetHeight*dpr;ctx.scale(dpr,dpr);
+    const w=canvas.offsetWidth,h=canvas.offsetHeight;
+    const points=history.slice().reverse().map(e=>Number(e.report?.overall_score||0));
+    const pad={l:40,r:16,t:16,b:24};const cw=w-pad.l-pad.r,ch=h-pad.t-pad.b;
+    // Grid
+    for(let i=0;i<=5;i++){const y=pad.t+ch*(i/5);ctx.strokeStyle=COLORS.dim;ctx.lineWidth=.5;ctx.beginPath();ctx.moveTo(pad.l,y);ctx.lineTo(w-pad.r,y);ctx.stroke();
+        ctx.fillStyle=COLORS.dimText;ctx.font="500 10px Inter";ctx.textAlign="right";ctx.fillText(String(10-i*2),pad.l-6,y+4)}
+    if(!points.length){ctx.fillStyle=COLORS.dimText;ctx.font="600 14px Inter";ctx.textAlign="center";ctx.fillText("Complete interviews to see trends",w/2,h/2);return}
+    const xStep=points.length>1?cw/(points.length-1):0;const toY=s=>pad.t+ch*(1-Math.max(0,Math.min(10,s))/10);
+    // Fill
+    const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,"rgba(124,58,237,0.2)");grad.addColorStop(1,"rgba(124,58,237,0)");
+    ctx.beginPath();points.forEach((s,i)=>{const x=pad.l+xStep*i;i===0?ctx.moveTo(x,toY(s)):ctx.lineTo(x,toY(s))});
+    ctx.lineTo(pad.l+xStep*(points.length-1),pad.t+ch);ctx.lineTo(pad.l,pad.t+ch);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    // Line
+    ctx.strokeStyle=COLORS.violet;ctx.lineWidth=2.5;ctx.beginPath();points.forEach((s,i)=>{const x=pad.l+xStep*i;i===0?ctx.moveTo(x,toY(s)):ctx.lineTo(x,toY(s))});ctx.stroke();
+    // Dots
+    points.forEach((s,i)=>{const x=pad.l+xStep*i,y=toY(s);ctx.fillStyle="#fff";ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fill();ctx.fillStyle=COLORS.violet;ctx.beginPath();ctx.arc(x,y,2.5,0,Math.PI*2);ctx.fill()});
+}
+
+function renderQbQ(responses){
+    const el=document.getElementById("qbqList");
+    if(!responses||!responses.length){el.innerHTML='<div style="color:var(--dim);font-size:14px">No questions answered yet.</div>';return}
+    el.innerHTML=responses.map((r,i)=>{
+        const c=scCls(r.score);
+        return `<div class="qbq-card glass" onclick="this.nextElementSibling.classList.toggle('vis')">
+            <div class="qbq-num ${c}">${r.skipped?"—":r.score}</div>
+            <div class="qbq-mid"><strong>${r.prompt}</strong><span>${r.topic} · ${r.difficulty} · ${r.question_type} ${r.skipped?"· SKIPPED":""} · ${r.time_taken}s</span></div>
+            <div class="qbq-score ${c}">${r.skipped?"Skip":sf(r.score)}</div>
+        </div>
+        <div class="qbq-detail glass">
+            <p><strong>Your Answer:</strong> ${r.answer||"(skipped)"}</p>
+            <p><strong>Feedback:</strong> ${r.feedback}</p>
+            ${r.strengths?`<p><strong>Strengths:</strong> ${r.strengths}</p>`:""}
+            ${r.improvement?`<p><strong>Improve:</strong> ${r.improvement}</p>`:""}
+            <p><strong>Correct Answer:</strong> ${r.correct_answer}</p>
+            <p><strong>Code:</strong></p><pre style="font-family:'Fira Code',monospace;font-size:12px;color:var(--neon-cyan);background:rgba(0,0,0,.3);padding:12px;border-radius:8px;margin-top:6px;white-space:pre-wrap">${r.code_snippet||""}</pre>
+        </div>`;
+    }).join("");
+}
+
+function renderSessions(history){
+    const el=document.getElementById("sessList");
+    if(!history.length){el.innerHTML='<div style="color:var(--dim);font-size:14px">No previous sessions.</div>';return}
+    el.innerHTML=history.map((s,i)=>{
+        const r=s.report||{};const sc=Number(r.overall_score||0);const c=scCls(sc);const m=r.metrics||{};
+        return `<div class="sess-card glass" onclick="loadSession(${i})">
+            <div class="sess-left"><div class="sess-sc ${c}">${sf(sc)}</div><div class="sess-info"><strong>Interview #${history.length-i}</strong><span>${m.answered||0}/${m.total_questions||0} answered · Debug: ${m.debug_accuracy||0}% · ${Math.floor((m.total_time||0)/60)}m</span></div></div>
+            <div class="sess-right">${fmtDate(s.completed_at)}</div>
+        </div>`;
+    }).join("");
+}
+
+window.loadSession=function(idx){
+    const h=loadAll();if(!h[idx])return;
+    const r=h[idx].report;currentReport=r;
+    renderKPIs(r);
+    drawRadar(r.topic_breakdown||{});drawBar(r.topic_breakdown||{});
+    renderQbQ(r.responses||[]);
+    window.scrollTo({top:0,behavior:"smooth"});
+};
+
+let currentReport=null;
+function loadDashboard(){
+    const history=loadAll();
+    if(history.length){currentReport=history[0].report;renderKPIs(currentReport);
+        drawRadar(currentReport.topic_breakdown||{});drawBar(currentReport.topic_breakdown||{});
+        renderQbQ(currentReport.responses||[])}
+    else{renderKPIs(null);drawRadar({});drawBar({})}
+    drawLine(history);renderSessions(history);
+}
+
+document.getElementById("clearBtn").addEventListener("click",()=>{
+    if(confirm("Clear all advanced interview data?")){localStorage.removeItem(STORAGE_KEY);loadDashboard()}});
+
+addEventListener("resize",()=>{if(currentReport){drawRadar(currentReport.topic_breakdown||{});drawBar(currentReport.topic_breakdown||{})}drawLine(loadAll())});
+
+loadDashboard();
+
+/* BG */
+(function(){const c=document.getElementById("bgCanvas"),ctx=c.getContext("2d");let w,h,nodes=[];
+function resize(){w=c.width=innerWidth;h=c.height=innerHeight;nodes=[];const cnt=Math.min(40,Math.floor(w*h/20000));
+for(let i=0;i<cnt;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()+.4})}
+function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.2)";ctx.fill()});
+for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+if(d<120){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(96,165,250,${.05*(1-d/120)})`;ctx.lineWidth=.4;ctx.stroke()}}
+requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+</script>
+</body>
+</html>

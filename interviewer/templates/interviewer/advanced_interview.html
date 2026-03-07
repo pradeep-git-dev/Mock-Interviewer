@@ -1,0 +1,368 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Interview — MockInterviewer</title>
+    <meta name="description" content="Advanced DSA interview with code snippets, debugging tasks, and real-time AI feedback.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font:'Inter',-apple-system,sans-serif;--mono:'Fira Code',monospace;
+            --bg:#030014;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+            --text:#e8ecf4;--dim:rgba(232,236,244,0.5);
+            --blue:#3b82f6;--violet:#7c3aed;--cyan:#06b6d4;
+            --neon-blue:#60a5fa;--neon-violet:#a78bfa;--neon-cyan:#22d3ee;
+            --green:#34d399;--amber:#fbbf24;--red:#f87171;
+            --glow-v:rgba(124,58,237,0.3);--r:16px;--rs:10px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        #neuralBg{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+        .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);
+            backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);
+            box-shadow:0 8px 32px rgba(0,0,0,0.4),inset 0 1px 0 rgba(255,255,255,0.05)}
+
+        /* TOP BAR */
+        .top-bar{position:sticky;top:0;z-index:100;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+            background:rgba(3,0,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b);gap:12px;flex-wrap:wrap}
+        .logo{font-weight:800;font-size:18px}.logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
+        .tb-center{display:flex;align-items:center;gap:20px}
+        .timer{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--neon-cyan);letter-spacing:1px}
+        .timer.warn{color:var(--amber);animation:pulse 1s infinite}
+        .timer.crit{color:var(--red);animation:pulse .5s infinite}
+        .progress-txt{font-size:13px;font-weight:600;color:var(--dim)}
+        .progress-txt .hl{color:var(--neon-blue)}
+        .tb-right{display:flex;gap:8px}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:var(--rs);
+            font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+        .btn-end{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.2)}
+        .btn-end:hover{background:rgba(248,113,113,0.22)}
+        .btn-p{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;box-shadow:0 4px 20px var(--glow-v)}
+        .btn-p:hover{transform:translateY(-1px)}.btn-p:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+        .btn-g{background:var(--glass);color:var(--text);border:1px solid var(--glass-b)}
+        .btn-g:hover{background:rgba(255,255,255,0.06)}
+        .btn-g:disabled{opacity:.35;cursor:not-allowed}
+        .btn-skip{background:rgba(251,191,36,0.1);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}
+        .btn-skip:hover{background:rgba(251,191,36,0.18)}
+
+        /* MAIN SPLIT */
+        .main{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:18px 24px;min-height:calc(100vh - 60px)}
+
+        /* LEFT: QUESTION */
+        .left{display:flex;flex-direction:column;gap:16px}
+        .q-header{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+        .badge{padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;border:1px solid}
+        .badge-topic{background:rgba(124,58,237,0.1);color:var(--neon-violet);border-color:rgba(124,58,237,0.2)}
+        .badge-type{border-color:rgba(34,211,238,0.2)}
+        .badge-type.snippet{background:rgba(34,211,238,0.1);color:var(--neon-cyan)}
+        .badge-type.debug{background:rgba(248,113,113,0.1);color:var(--red)}
+        .badge-diff{border-color:rgba(52,211,153,0.2)}
+        .badge-diff.Easy{background:rgba(52,211,153,0.1);color:var(--green)}
+        .badge-diff.Medium{background:rgba(251,191,36,0.1);color:var(--amber)}
+        .badge-diff.Hard{background:rgba(248,113,113,0.1);color:var(--red)}
+        .q-prompt{font-size:16px;font-weight:500;line-height:1.7;padding:20px}
+        .typing-cursor{display:inline-block;width:2px;height:1em;background:var(--neon-violet);animation:blink .7s infinite;vertical-align:text-bottom;margin-left:2px}
+        .code-display{padding:20px;position:relative;overflow:hidden}
+        .code-display::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--blue),var(--cyan))}
+        .code-display pre{font-family:var(--mono);font-size:13px;line-height:1.75;color:var(--neon-cyan);white-space:pre-wrap;word-wrap:break-word;margin:0}
+        .code-display .lang-tag{position:absolute;top:10px;right:14px;font-size:10px;font-weight:700;text-transform:uppercase;color:var(--dim);letter-spacing:1px}
+        .hint-panel{padding:16px;font-size:13px;color:var(--dim)}
+        .hint-panel strong{color:var(--amber)}
+        .hint-btn{font-size:12px;color:var(--neon-violet);background:none;border:none;cursor:pointer;font-family:var(--font);font-weight:600;text-decoration:underline}
+
+        /* FEEDBACK INLINE */
+        .fb{display:none;padding:16px;animation:slideIn .3s ease;margin-top:auto}
+        .fb.vis{display:block}
+        .fb-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+        .sc{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff}
+        .sc.hi{background:linear-gradient(135deg,#34d399,#10b981)}.sc.mi{background:linear-gradient(135deg,var(--violet),#5b3fd4)}.sc.lo{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+        .fb p{font-size:13px;color:var(--dim);margin:2px 0}.fb strong{color:var(--text)}
+        .fb .correct-ans{margin-top:8px;padding:10px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.15);border-radius:8px;font-size:12px;color:var(--green);line-height:1.6}
+
+        /* RIGHT: CODE EDITOR */
+        .right{display:flex;flex-direction:column;gap:16px}
+        .editor-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--glass-b)}
+        .editor-title{font-size:14px;font-weight:700}
+        .lang-tabs{display:flex;gap:4px}
+        .lang-tab{padding:5px 12px;border-radius:6px;font-size:11px;font-weight:700;cursor:pointer;border:1px solid transparent;
+            color:var(--dim);background:transparent;font-family:var(--font);transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
+        .lang-tab.active{background:rgba(124,58,237,0.15);color:var(--neon-violet);border-color:rgba(124,58,237,0.25)}
+        .lang-tab:hover:not(.active){background:rgba(255,255,255,0.04);color:var(--text)}
+        .editor-body{flex:1;display:flex;flex-direction:column}
+        .code-input{flex:1;width:100%;min-height:250px;padding:20px;font-family:var(--mono);font-size:13px;line-height:1.75;
+            background:rgba(0,0,0,0.3);color:var(--neon-cyan);border:none;outline:none;resize:none;border-radius:0}
+        .code-input::placeholder{color:rgba(255,255,255,0.15)}
+        .editor-actions{display:flex;gap:8px;padding:16px 20px;border-top:1px solid var(--glass-b);flex-wrap:wrap}
+
+        /* ANALYZING ANIMATION */
+        .analyzing{display:none;padding:16px;text-align:center}
+        .analyzing.vis{display:flex;align-items:center;justify-content:center;gap:12px}
+        .analyzing-dots{display:flex;gap:4px}
+        .analyzing-dots span{width:8px;height:8px;border-radius:50%;background:var(--neon-violet);animation:dotPulse 1.2s ease infinite}
+        .analyzing-dots span:nth-child(2){animation-delay:.2s}.analyzing-dots span:nth-child(3){animation-delay:.4s}
+        .analyzing-text{font-size:13px;font-weight:600;color:var(--dim)}
+
+        /* CONFIDENCE */
+        .conf{padding:14px 20px;display:flex;align-items:center;gap:14px;border-top:1px solid var(--glass-b)}
+        .conf-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--dim);white-space:nowrap}
+        .conf-bar{flex:1;height:6px;border-radius:6px;background:rgba(255,255,255,0.06);overflow:hidden}
+        .conf-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--neon-blue),var(--neon-violet),var(--neon-cyan));transition:width .5s ease;width:0%}
+        .conf-val{font-size:14px;font-weight:800;color:var(--neon-violet);min-width:36px;text-align:right}
+
+        /* PROGRESS BAR */
+        .prog-bar{width:100%;height:3px;background:rgba(255,255,255,0.06);overflow:hidden}
+        .prog-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--blue));transition:width .4s ease}
+
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes dotPulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.3);opacity:1}}
+
+        @media(max-width:900px){.main{grid-template-columns:1fr}.tb-center{order:3;width:100%;justify-content:center}}
+    </style>
+</head>
+<body>
+<canvas id="neuralBg"></canvas>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <div class="logo"><span class="m">Mock</span><span class="a">Interviewer</span> <span style="font-weight:400;font-size:12px;color:var(--neon-cyan)">ADVANCED</span></div>
+    <div class="tb-center">
+        <div id="timer" class="timer">30:00</div>
+        <div class="prog-bar" style="width:120px"><div id="progFill" class="prog-fill" style="width:0%"></div></div>
+        <div id="progText" class="progress-txt">—</div>
+    </div>
+    <div class="tb-right">
+        <a href="/" class="btn btn-g">← Back</a>
+        <button id="endBtn" class="btn btn-end" disabled>⏹ End Interview</button>
+    </div>
+</div>
+
+<!-- MAIN SPLIT -->
+<div class="main">
+    <!-- LEFT: QUESTION -->
+    <div class="left">
+        <div class="q-header">
+            <span id="topicBadge" class="badge badge-topic">—</span>
+            <span id="typeBadge" class="badge badge-type snippet">—</span>
+            <span id="diffBadge" class="badge badge-diff Easy">—</span>
+        </div>
+        <div id="questionPrompt" class="q-prompt glass">Press <strong>"Start Interview"</strong> below to begin the advanced DSA challenge.</div>
+        <div id="codeDisplay" class="code-display glass" style="display:none">
+            <span id="langTag" class="lang-tag">python</span>
+            <pre id="codeSnippet"></pre>
+        </div>
+        <div id="hintPanel" class="hint-panel glass" style="display:none">
+            <button id="hintBtn" class="hint-btn">💡 Show Hint</button>
+            <div id="hintContent" style="display:none;margin-top:8px"></div>
+        </div>
+        <div id="fbPanel" class="fb glass">
+            <div class="fb-row"><div id="fbScore" class="sc hi">0</div><div><strong id="fbLabel">Evaluation</strong><p id="fbText"></p></div></div>
+            <p id="fbStr"></p><p id="fbImp"></p>
+            <div id="fbCorrect" class="correct-ans" style="display:none"></div>
+        </div>
+    </div>
+
+    <!-- RIGHT: CODE EDITOR -->
+    <div class="right">
+        <div class="glass" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+            <div class="editor-header">
+                <div class="editor-title">💻 Your Answer</div>
+                <div class="lang-tabs">
+                    <button class="lang-tab active" data-lang="python">Python</button>
+                    <button class="lang-tab" data-lang="java">Java</button>
+                    <button class="lang-tab" data-lang="cpp">C++</button>
+                </div>
+            </div>
+            <div class="editor-body">
+                <textarea id="answerInput" class="code-input" placeholder="Write your answer or explanation here..."></textarea>
+            </div>
+            <div id="analyzingBar" class="analyzing">
+                <div class="analyzing-dots"><span></span><span></span><span></span></div>
+                <span class="analyzing-text">AI is analyzing your answer...</span>
+            </div>
+            <div class="conf">
+                <span class="conf-label">Confidence</span>
+                <div class="conf-bar"><div id="confFill" class="conf-fill"></div></div>
+                <span id="confVal" class="conf-val">—</span>
+            </div>
+            <div class="editor-actions">
+                <button id="startBtn" class="btn btn-p">🎯 Start Interview</button>
+                <button id="submitBtn" class="btn btn-p" style="display:none" disabled>Submit Answer →</button>
+                <button id="skipBtn" class="btn btn-skip" style="display:none" disabled>⏭ Skip</button>
+                <button id="nextBtn" class="btn btn-g" style="display:none">Next Question →</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const STORAGE_KEY="mock_adv_interviews_v1";
+const timerEl=document.getElementById("timer"),progFill=document.getElementById("progFill"),progText=document.getElementById("progText");
+const startBtn=document.getElementById("startBtn"),submitBtn=document.getElementById("submitBtn"),skipBtn=document.getElementById("skipBtn"),nextBtn=document.getElementById("nextBtn"),endBtn=document.getElementById("endBtn");
+const answerInput=document.getElementById("answerInput"),questionPrompt=document.getElementById("questionPrompt"),codeDisplay=document.getElementById("codeDisplay"),codeSnippet=document.getElementById("codeSnippet"),langTag=document.getElementById("langTag");
+const topicBadge=document.getElementById("topicBadge"),typeBadge=document.getElementById("typeBadge"),diffBadge=document.getElementById("diffBadge");
+const hintPanel=document.getElementById("hintPanel"),hintBtn=document.getElementById("hintBtn"),hintContent=document.getElementById("hintContent");
+const fbPanel=document.getElementById("fbPanel"),fbScore=document.getElementById("fbScore"),fbText=document.getElementById("fbText"),fbStr=document.getElementById("fbStr"),fbImp=document.getElementById("fbImp"),fbCorrect=document.getElementById("fbCorrect");
+const analyzingBar=document.getElementById("analyzingBar"),confFill=document.getElementById("confFill"),confVal=document.getElementById("confVal");
+
+let totalQ=8,curIdx=0,timerInterval=null,remaining=1800,started=false,curHints=[],confScore=0;
+
+function getCk(n){const v=`; ${document.cookie}`;const p=v.split(`; ${n}=`);if(p.length===2)return p.pop().split(";").shift();return""}
+function pad(n){return String(n).padStart(2,"0")}
+function fmtTime(s){return `${pad(Math.floor(s/60))}:${pad(Math.floor(s%60))}`}
+
+function updateTimer(){
+    remaining=Math.max(0,remaining-1);
+    timerEl.textContent=fmtTime(remaining);
+    timerEl.className="timer"+(remaining<=60?" crit":remaining<=300?" warn":"");
+    if(remaining<=0){clearInterval(timerInterval);endInterview()}
+}
+
+function typeText(el,text,speed=18){
+    el.innerHTML="";let i=0;const cursor=document.createElement("span");cursor.className="typing-cursor";el.appendChild(cursor);
+    return new Promise(resolve=>{
+        function step(){if(i<text.length){el.insertBefore(document.createTextNode(text[i]),cursor);i++;setTimeout(step,speed)}else{cursor.remove();resolve()}}
+        step();
+    });
+}
+
+function showQuestion(data){
+    const q=data.question;curIdx=data.question_index||1;totalQ=data.total_questions||totalQ;remaining=Math.floor(data.remaining_seconds||remaining);
+    progText.innerHTML=`Q <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span>`;
+    progFill.style.width=`${((curIdx-1)/totalQ)*100}%`;
+    topicBadge.textContent=q.topic;
+    typeBadge.textContent=q.question_type==="debug"?"🐛 Debug":"📝 Snippet";
+    typeBadge.className="badge badge-type "+(q.question_type==="debug"?"debug":"snippet");
+    diffBadge.textContent=q.difficulty;diffBadge.className="badge badge-diff "+q.difficulty;
+    typeText(questionPrompt,q.prompt,14);
+    codeSnippet.textContent=q.code_snippet;langTag.textContent=q.language;codeDisplay.style.display="block";
+    curHints=q.hints||[];hintContent.style.display="none";hintContent.innerHTML="";
+    if(curHints.length){hintPanel.style.display="block";hintBtn.onclick=()=>{hintContent.innerHTML=curHints.map(h=>`<strong>💡</strong> ${h}`).join("<br>");hintContent.style.display="block"}}else{hintPanel.style.display="none"}
+    answerInput.value="";submitBtn.disabled=false;skipBtn.disabled=false;
+    fbPanel.classList.remove("vis");analyzingBar.classList.remove("vis");
+    // Set active lang tab
+    document.querySelectorAll(".lang-tab").forEach(t=>t.classList.toggle("active",t.dataset.lang===q.language));
+}
+
+function showFeedback(ev){
+    fbPanel.classList.add("vis");const s=ev.score||0;
+    fbScore.textContent=s;fbScore.className="sc "+(s>=8?"hi":s>=5?"mi":"lo");
+    fbText.textContent=ev.feedback||"";
+    fbStr.innerHTML=ev.strengths?`<strong>✓</strong> ${ev.strengths}`:"";
+    fbImp.innerHTML=ev.improvement?`<strong>△</strong> ${ev.improvement}`:"";
+    if(ev.correct_answer){fbCorrect.style.display="block";fbCorrect.innerHTML=`<strong>Model Answer:</strong> ${ev.correct_answer}`}else{fbCorrect.style.display="none"}
+    confScore=Math.min(100,Math.max(0,confScore+(s>=7?8:-5)));
+    confFill.style.width=confScore+"%";confVal.textContent=confScore+"%";
+}
+
+function showControls(mode){
+    startBtn.style.display=mode==="start"?"inline-flex":"none";
+    submitBtn.style.display=mode==="active"?"inline-flex":"none";
+    skipBtn.style.display=mode==="active"?"inline-flex":"none";
+    nextBtn.style.display=mode==="review"?"inline-flex":"none";
+}
+
+function saveReport(report){
+    try{const a=JSON.parse(localStorage.getItem(STORAGE_KEY)||"[]");
+    a.unshift({completed_at:new Date().toISOString(),report});
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(a.slice(0,50)))}catch(e){}
+}
+
+async function endInterview(){
+    if(!started)return;started=false;clearInterval(timerInterval);
+    try{const r=await fetch("/api/adv/end/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")}});
+    const d=await r.json();if(d.report){saveReport(d.report);window.location.href="/performance/"}}catch(e){window.location.href="/performance/"}
+}
+
+startBtn.addEventListener("click",async()=>{
+    try{const r=await fetch("/api/adv/start/");const d=await r.json();
+    started=true;showControls("active");endBtn.disabled=false;
+    timerInterval=setInterval(updateTimer,1000);showQuestion(d)}catch(e){questionPrompt.textContent="Error: "+e.message}
+});
+
+submitBtn.addEventListener("click",async()=>{
+    submitBtn.disabled=true;skipBtn.disabled=true;
+    analyzingBar.classList.add("vis");
+    try{const r=await fetch("/api/adv/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:answerInput.value.trim()})});
+    const d=await r.json();analyzingBar.classList.remove("vis");
+    if(d.finished){if(d.last_evaluation)showFeedback(d.last_evaluation);saveReport(d.report);clearInterval(timerInterval);
+        setTimeout(()=>window.location.href="/performance/",2500);return}
+    showFeedback(d.evaluation);showControls("review")}catch(e){analyzingBar.classList.remove("vis");questionPrompt.textContent="Error: "+e.message}
+});
+
+skipBtn.addEventListener("click",async()=>{
+    submitBtn.disabled=true;skipBtn.disabled=true;
+    try{const r=await fetch("/api/adv/skip/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")}});
+    const d=await r.json();if(d.finished){saveReport(d.report);clearInterval(timerInterval);window.location.href="/performance/";return}
+    if(d.correct_answer){fbCorrect.style.display="block";fbCorrect.innerHTML=`<strong>Correct Answer:</strong> ${d.correct_answer}`;fbPanel.classList.add("vis");fbScore.textContent="0";fbScore.className="sc lo";fbText.textContent="Question skipped."}
+    showControls("review")}catch(e){questionPrompt.textContent="Error: "+e.message}
+});
+
+nextBtn.addEventListener("click",()=>{showControls("active");fbPanel.classList.remove("vis");
+    // Trigger next question display from last response
+    fetch("/api/adv/start/").then(r=>r.json()).then(d=>{
+        // Actually we already advanced the index server-side, just need to re-render current state
+        // The next question was already shown in the submit/skip response
+    }).catch(()=>{});
+    // Re-fetch current state
+    // Actually the next question data was already sent in the submit/skip response. We handle this in the submit handler below.
+});
+
+// Handle all button actions through event delegation to avoid listener issues
+document.querySelector(".editor-actions").addEventListener("click",async(e)=>{
+    const t=e.target;
+    if(t.id==="startBtn" && !started){
+        startBtn.click();
+        return;
+    }
+    if(t.id==="submitBtn" && !t.disabled){
+        t.disabled=true;document.getElementById("skipBtn").disabled=true;analyzingBar.classList.add("vis");
+        try{
+            const r=await fetch("/api/adv/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:answerInput.value.trim()})});
+            const d=await r.json();
+            analyzingBar.classList.remove("vis");
+            if(d.finished){
+                if(d.last_evaluation)showFeedback(d.last_evaluation);
+                saveReport(d.report);
+                clearInterval(timerInterval);
+                progText.innerHTML="<span class='hl'>Complete!</span>";progFill.style.width="100%";
+                setTimeout(()=>window.location.href="/performance/",2000);
+                return;
+            }
+            showFeedback(d.evaluation);
+            pendingNext=d;
+            showControls("review");
+        }catch(er){
+            analyzingBar.classList.remove("vis");
+        }
+        return;
+    }
+    if(t.id==="nextBtn" && pendingNext){
+        showQuestion(pendingNext);
+        pendingNext=null;
+        showControls("active");
+        fbPanel.classList.remove("vis");
+        return;
+    }
+});
+
+endBtn.addEventListener("click",()=>{if(confirm("End the interview now? Your progress will be saved."))endInterview()});
+
+/* NEURAL BG */
+(function(){const c=document.getElementById("neuralBg"),ctx=c.getContext("2d");let w,h,nodes=[];
+function resize(){w=c.width=innerWidth;h=c.height=innerHeight;nodes=[];const cnt=Math.min(50,Math.floor(w*h/18000));
+for(let i=0;i<cnt;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.2+.3})}
+function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.25)";ctx.fill()});
+for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+if(d<120){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(96,165,250,${.06*(1-d/120)})`;ctx.lineWidth=.4;ctx.stroke()}}
+requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+</script>
+</body>
+</html>
