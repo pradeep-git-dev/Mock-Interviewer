@@ -10,7 +10,6 @@ from django.views.decorators.http import require_GET, require_POST
 from .logic import InterviewSession
 from .questions import get_question_bank, get_question_topics
 from .advanced_logic import AdvancedSession
-from .advanced_questions import get_advanced_topics
 
 SESSION_KEY = "interview_state"
 ADV_SESSION_KEY = "advanced_interview_state"
@@ -141,19 +140,6 @@ def submit_answer(request: HttpRequest):
 #  ADVANCED INTERVIEW VIEWS
 # ═══════════════════════════════════
 
-def _adv_serialize_question(q):
-    return {
-        "qid": q.qid,
-        "topic": q.topic,
-        "difficulty": q.difficulty,
-        "question_type": q.question_type,
-        "prompt": q.prompt,
-        "code_snippet": q.code_snippet,
-        "language": q.language,
-        "hints": q.hints,
-    }
-
-
 def _adv_load(request):
     data = request.session.get(ADV_SESSION_KEY)
     return AdvancedSession.from_dict(data) if data else None
@@ -168,23 +154,32 @@ def _adv_save(request, s):
 @ensure_csrf_cookie
 @require_GET
 def advanced_interview_page(request):
-    return render(request, "interviewer/advanced_interview.html", {
-        "topics": ", ".join(get_advanced_topics()),
-    })
+    return render(request, "interviewer/advanced_interview.html")
 
 
 @require_GET
 def adv_start(request):
-    lang = request.GET.get("lang", None)
-    s = AdvancedSession(lang=lang)
+    lang = request.GET.get("lang", "python")
+    mode = request.GET.get("mode", "debug")  # "debug" or "coding"
+
+    if mode not in ("debug", "coding"):
+        mode = "debug"
+
+    s = AdvancedSession(mode=mode, lang=lang)
+    q = s.get_current_question_for_client()
+
+    if not q:
+        return JsonResponse({"error": "Failed to generate question"}, status=500)
+
     _adv_save(request, s)
-    q = s.get_current_question()
     return JsonResponse({
         "started": True,
-        "total_questions": len(s.questions),
+        "mode": mode,
+        "language": lang,
+        "total_questions": s.total_questions,
         "question_index": 1,
         "remaining_seconds": s.remaining_seconds(),
-        "question": _adv_serialize_question(q),
+        "question": q,
     })
 
 
@@ -202,8 +197,8 @@ def adv_answer(request):
     except json.JSONDecodeError:
         return HttpResponseBadRequest("Invalid JSON")
 
-    answer = str(body.get("answer", "")).strip()
-    eval_result = s.evaluate_answer(answer)
+    submitted_code = str(body.get("code", "")).strip()
+    eval_result = s.evaluate_answer(submitted_code)
 
     if s.is_finished():
         s.end_interview()
@@ -214,29 +209,44 @@ def adv_answer(request):
             "report": report,
             "last_evaluation": {
                 "score": eval_result["score"],
-                "feedback": eval_result["feedback"],
+                "feedback": eval_result.get("feedback", ""),
                 "strengths": eval_result.get("strengths", ""),
                 "improvement": eval_result.get("improvement", ""),
-                "correct_answer": eval_result.get("correct_answer", ""),
+                "bugs_found": eval_result.get("bugs_found", []),
+                "passed_tests": eval_result.get("passed_tests", 0),
+                "total_tests": eval_result.get("total_tests", 0),
             },
         })
 
-    nq = s.get_current_question()
+    # Generate next question
+    nq = s.get_current_question_for_client()
     _adv_save(request, s)
-    return JsonResponse({
+
+    response_data = {
         "finished": False,
         "question_index": s.index + 1,
-        "total_questions": len(s.questions),
+        "total_questions": s.total_questions,
         "remaining_seconds": s.remaining_seconds(),
-        "question": _adv_serialize_question(nq),
+        "question": nq,
         "evaluation": {
             "score": eval_result["score"],
-            "feedback": eval_result["feedback"],
+            "feedback": eval_result.get("feedback", ""),
             "strengths": eval_result.get("strengths", ""),
             "improvement": eval_result.get("improvement", ""),
-            "correct_answer": eval_result.get("correct_answer", ""),
+            "bugs_found": eval_result.get("bugs_found", []),
+            "passed_tests": eval_result.get("passed_tests", 0),
+            "total_tests": eval_result.get("total_tests", 0),
         },
-    })
+    }
+
+    # Include solution/fix for review
+    if s.mode == "debug":
+        response_data["evaluation"]["fixed_code"] = eval_result.get("fixed_code", "")
+        response_data["evaluation"]["bug_explanation"] = eval_result.get("bug_explanation", "")
+    else:
+        response_data["evaluation"]["solution_code"] = eval_result.get("solution_code", "")
+
+    return JsonResponse(response_data)
 
 
 @require_POST
@@ -255,16 +265,15 @@ def adv_skip(request):
         _adv_save(request, s)
         return JsonResponse({"finished": True, "report": s.compile_report()})
 
-    nq = s.get_current_question()
+    nq = s.get_current_question_for_client()
     _adv_save(request, s)
     return JsonResponse({
         "finished": False,
         "question_index": s.index + 1,
-        "total_questions": len(s.questions),
+        "total_questions": s.total_questions,
         "remaining_seconds": s.remaining_seconds(),
-        "question": _adv_serialize_question(nq),
+        "question": nq,
         "skipped": True,
-        "correct_answer": skip_result.get("correct_answer", ""),
     })
 
 
@@ -282,3 +291,4 @@ def adv_end(request):
 @require_GET
 def dashboard_page(request):
     return render(request, "interviewer/dashboard.html")
+

@@ -1,57 +1,127 @@
 """
-Advanced interview session logic with timer, skip, and per-question metrics.
+Advanced interview session logic with two modes:
+  Mode 1 – Debugging Round: Fix buggy code
+  Mode 2 – Coding Round: Solve DSA problems
+
+Questions are dynamically generated via AI with static fallbacks.
 """
 from __future__ import annotations
 
 import time
 import random
+from collections import defaultdict
+from statistics import mean
 from typing import Dict, List, Optional
 
-from .advanced_questions import AdvancedQuestion, get_advanced_bank, get_snippet_bank, get_full_advanced_bank
-from .ai_service import evaluate_with_ai
+from .ai_service import evaluate_code_with_ai, evaluate_with_ai
+from .ai_question_generator import (
+    generate_debug_question,
+    generate_coding_question,
+    get_fallback_debug,
+    get_fallback_coding,
+)
 
 
-ADVANCED_COUNT = 8
-MIN_SNIPPET_COUNT = 5  # Minimum code snippet questions per interview
-INTERVIEW_DURATION = 30 * 60  # 30 minutes in seconds
+QUESTIONS_PER_ROUND = 5
+INTERVIEW_DURATION = 30 * 60  # 30 minutes
 
 
 class AdvancedSession:
-    def __init__(self, questions=None, index=0, responses=None,
-                 selected_qids=None, start_time=None, ended=False, lang=None):
-        full_bank = get_full_advanced_bank()
-        snippet_bank = get_snippet_bank(lang)
-        builtin_bank = get_advanced_bank()
+    """
+    Manages an advanced coding interview session.
+    Supports modes: 'debug' and 'coding'.
+    Questions are generated one at a time (on-demand) from AI.
+    """
 
-        if lang:
-            builtin_bank = [q for q in builtin_bank if q.language.lower() == lang.lower()]
-
-        by_qid = {q.qid: q for q in full_bank}
-
-        if questions is not None:
-            self.questions = questions
-        elif selected_qids:
-            self.questions = [by_qid[qid] for qid in selected_qids if qid in by_qid]
-        else:
-            # Guarantee at least MIN_SNIPPET_COUNT code snippet questions
-            snippet_count = min(MIN_SNIPPET_COUNT, len(snippet_bank))
-            snippet_picks = random.sample(snippet_bank, snippet_count) if snippet_bank else []
-
-            # Fill remaining slots from built-in bank
-            remaining = max(0, ADVANCED_COUNT - len(snippet_picks))
-            builtin_picks = random.sample(builtin_bank, min(remaining, len(builtin_bank))) if builtin_bank and remaining > 0 else []
-
-            self.questions = snippet_picks + builtin_picks
-            random.shuffle(self.questions)
-
-        self.selected_qids = [q.qid for q in self.questions]
+    def __init__(
+        self,
+        mode: str = "debug",
+        lang: str = "python",
+        index: int = 0,
+        responses: Optional[List[Dict]] = None,
+        questions: Optional[List[Dict]] = None,
+        start_time: Optional[float] = None,
+        ended: bool = False,
+        used_topics: Optional[List[str]] = None,
+        fallback_idx: int = 0,
+    ):
+        self.mode = mode  # "debug" or "coding"
+        self.lang = lang
         self.index = index
         self.responses: List[Dict] = responses or []
+        self.questions: List[Dict] = questions or []
         self.start_time = start_time or time.time()
         self.ended = ended
+        self.used_topics: List[str] = used_topics or []
+        self.fallback_idx = fallback_idx
+        self.total_questions = QUESTIONS_PER_ROUND
 
-    def get_current_question(self) -> AdvancedQuestion:
-        return self.questions[self.index]
+    def _generate_next_question(self) -> Optional[Dict]:
+        """Generate the next question using AI, falling back to static bank."""
+        qnum = self.index + 1
+
+        if self.mode == "debug":
+            q = generate_debug_question(
+                self.lang, self.used_topics, qnum, self.total_questions
+            )
+            if not q:
+                q = get_fallback_debug(self.lang, list(range(self.fallback_idx)))
+                self.fallback_idx += 1
+        else:
+            q = generate_coding_question(
+                self.lang, self.used_topics, qnum, self.total_questions
+            )
+            if not q:
+                q = get_fallback_coding(self.lang, list(range(self.fallback_idx)))
+                self.fallback_idx += 1
+
+        if q:
+            q["q_index"] = qnum
+            q["q_start"] = time.time()
+            self.used_topics.append(q.get("topic", ""))
+            self.questions.append(q)
+
+        return q
+
+    def get_current_question(self) -> Optional[Dict]:
+        """Get the current question, generating it if needed."""
+        if self.index < len(self.questions):
+            q = self.questions[self.index]
+            q["q_start"] = time.time()
+            return q
+        return self._generate_next_question()
+
+    def get_current_question_for_client(self) -> Optional[Dict]:
+        """Return a sanitized question dict safe for the client (no solutions)."""
+        q = self.get_current_question()
+        if not q:
+            return None
+
+        if self.mode == "debug":
+            return {
+                "type": "debug",
+                "topic": q.get("topic", ""),
+                "title": q.get("title", ""),
+                "difficulty": q.get("difficulty", "Medium"),
+                "description": q.get("description", ""),
+                "buggy_code": q.get("buggy_code", ""),
+                "language": q.get("language", self.lang),
+                "hints": q.get("hints", []),
+            }
+        else:
+            return {
+                "type": "coding",
+                "topic": q.get("topic", ""),
+                "title": q.get("title", ""),
+                "difficulty": q.get("difficulty", "Medium"),
+                "description": q.get("description", ""),
+                "examples": q.get("examples", []),
+                "constraints": q.get("constraints", []),
+                "starter_code": q.get("starter_code", ""),
+                "language": q.get("language", self.lang),
+                "time_complexity": q.get("time_complexity", ""),
+                "space_complexity": q.get("space_complexity", ""),
+            }
 
     def elapsed_seconds(self) -> float:
         return time.time() - self.start_time
@@ -63,84 +133,139 @@ class AdvancedSession:
         return self.remaining_seconds() <= 0
 
     def is_finished(self) -> bool:
-        return self.ended or self.index >= len(self.questions) or self.is_time_up()
+        return self.ended or self.index >= self.total_questions or self.is_time_up()
 
-    def evaluate_answer(self, answer: str) -> Dict:
-        question = self.get_current_question()
-        q_start = self.responses[-1]["q_start"] if self.responses and "q_start" in self.responses[-1] else time.time()
+    def evaluate_answer(self, submitted_code: str) -> Dict:
+        """Evaluate the candidate's submitted code using AI."""
+        if self.index >= len(self.questions):
+            return {"score": 0, "feedback": "No question to evaluate."}
+
+        question = self.questions[self.index]
+        q_start = question.get("q_start", time.time())
         time_taken = round(time.time() - q_start, 1)
 
-        # Try AI evaluation
-        ai_result = evaluate_with_ai(
-            question.topic,
-            f"[{question.question_type.upper()}] {question.prompt}\n\nCode:\n{question.code_snippet}",
-            answer
-        )
+        # Try AI code evaluation
+        if self.mode == "debug":
+            ai_result = evaluate_code_with_ai(
+                problem_description=question.get("description", ""),
+                language=self.lang,
+                submitted_code=submitted_code,
+                test_cases=question.get("test_cases", []),
+                original_code=question.get("buggy_code", ""),
+                question_type="debug",
+            )
+        else:
+            ai_result = evaluate_code_with_ai(
+                problem_description=question.get("description", ""),
+                language=self.lang,
+                submitted_code=submitted_code,
+                test_cases=question.get("test_cases", []),
+                question_type="coding",
+            )
 
         if ai_result:
             score = ai_result["score"]
-            feedback = ai_result["feedback"]
+            feedback = ai_result.get("feedback", "")
             strengths = ai_result.get("strengths", "")
             improvement = ai_result.get("improvement", "")
+            bugs_found = ai_result.get("bugs_found", [])
+            passed_tests = ai_result.get("passed_tests", 0)
+            total_tests = ai_result.get("total_tests", 0)
+            complexity = ai_result.get("complexity_analysis", "")
         else:
-            # Keyword fallback
-            answer_lower = answer.lower()
-            correct_lower = question.correct_answer.lower()
-            keywords = [w for w in correct_lower.split() if len(w) > 3]
-            matched = [k for k in keywords if k in answer_lower]
-            ratio = len(matched) / max(len(keywords), 1)
-            length_bonus = min(len(answer.split()) / 40.0, 1.0)
-            score = int(round((ratio * 0.7 + length_bonus * 0.3) * 10))
-            score = max(0, min(10, score))
-            feedback = "Good analysis." if score >= 7 else "Try to be more specific about the code behavior."
-            strengths = f"Matched {len(matched)} key concepts." if matched else ""
-            improvement = "Include more detail about time complexity and edge cases."
+            # Basic fallback: compare against solution
+            score = self._fallback_score(submitted_code, question)
+            feedback = "Code evaluated using structural comparison."
+            strengths = "Submitted code for evaluation." if submitted_code.strip() else ""
+            improvement = "Ensure your solution handles all edge cases."
+            bugs_found = []
+            passed_tests = 0
+            total_tests = len(question.get("test_cases", []))
+            complexity = ""
 
-        is_debug = question.question_type == "debug"
         payload = {
-            "qid": question.qid,
-            "topic": question.topic,
-            "difficulty": question.difficulty,
-            "question_type": question.question_type,
-            "prompt": question.prompt,
-            "code_snippet": question.code_snippet,
-            "language": question.language,
-            "answer": answer,
-            "correct_answer": question.correct_answer,
+            "q_index": question.get("q_index", self.index + 1),
+            "topic": question.get("topic", ""),
+            "title": question.get("title", ""),
+            "difficulty": question.get("difficulty", ""),
+            "type": self.mode,
+            "language": self.lang,
+            "answer": submitted_code,
             "score": score,
             "feedback": feedback,
             "strengths": strengths,
             "improvement": improvement,
+            "bugs_found": bugs_found,
+            "passed_tests": passed_tests,
+            "total_tests": total_tests,
+            "complexity_analysis": complexity,
             "time_taken": time_taken,
-            "is_debug": is_debug,
-            "debug_success": is_debug and score >= 6,
             "skipped": False,
         }
+
+        # Add question-specific data
+        if self.mode == "debug":
+            payload["buggy_code"] = question.get("buggy_code", "")
+            payload["fixed_code"] = question.get("fixed_code", "")
+            payload["bug_explanation"] = question.get("bug_explanation", "")
+            payload["description"] = question.get("description", "")
+        else:
+            payload["description"] = question.get("description", "")
+            payload["solution_code"] = question.get("solution_code", "")
+            payload["starter_code"] = question.get("starter_code", "")
+
         self.responses.append(payload)
         self.index += 1
         return payload
 
+    def _fallback_score(self, submitted: str, question: Dict) -> int:
+        """Basic scoring when AI is unavailable."""
+        if not submitted.strip():
+            return 0
+
+        solution = question.get("fixed_code", "") or question.get("solution_code", "")
+        if not solution:
+            return 3  # Can't compare, give partial credit for attempt
+
+        # Structural similarity
+        sub_lines = set(submitted.strip().lower().split("\n"))
+        sol_lines = set(solution.strip().lower().split("\n"))
+        if not sol_lines:
+            return 3
+
+        overlap = len(sub_lines & sol_lines) / len(sol_lines)
+        return max(1, min(10, int(round(overlap * 10))))
+
     def skip_question(self) -> Dict:
-        question = self.get_current_question()
+        """Skip the current question."""
+        if self.index >= len(self.questions):
+            return {"score": 0, "feedback": "No question to skip."}
+
+        question = self.questions[self.index]
         payload = {
-            "qid": question.qid,
-            "topic": question.topic,
-            "difficulty": question.difficulty,
-            "question_type": question.question_type,
-            "prompt": question.prompt,
-            "code_snippet": question.code_snippet,
-            "language": question.language,
+            "q_index": question.get("q_index", self.index + 1),
+            "topic": question.get("topic", ""),
+            "title": question.get("title", ""),
+            "difficulty": question.get("difficulty", ""),
+            "type": self.mode,
+            "language": self.lang,
             "answer": "",
-            "correct_answer": question.correct_answer,
             "score": 0,
             "feedback": "Question skipped.",
             "strengths": "",
             "improvement": "Attempt every question to maximize your score.",
             "time_taken": 0,
-            "is_debug": question.question_type == "debug",
-            "debug_success": False,
             "skipped": True,
         }
+        if self.mode == "debug":
+            payload["buggy_code"] = question.get("buggy_code", "")
+            payload["fixed_code"] = question.get("fixed_code", "")
+            payload["bug_explanation"] = question.get("bug_explanation", "")
+            payload["description"] = question.get("description", "")
+        else:
+            payload["description"] = question.get("description", "")
+            payload["solution_code"] = question.get("solution_code", "")
+
         self.responses.append(payload)
         self.index += 1
         return payload
@@ -150,21 +275,19 @@ class AdvancedSession:
 
     def compile_report(self) -> Dict:
         if not self.responses:
-            return {"overall_score": 0, "metrics": {}, "topic_breakdown": {}, "responses": []}
+            return {
+                "overall_score": 0, "mode": self.mode,
+                "metrics": {}, "topic_breakdown": {}, "responses": [],
+            }
 
-        total = len(self.responses)
         answered = [r for r in self.responses if not r.get("skipped")]
-        skipped = total - len(answered)
+        skipped = len(self.responses) - len(answered)
         scores = [r["score"] for r in answered] if answered else [0]
-        debug_qs = [r for r in self.responses if r.get("is_debug")]
-        debug_ok = sum(1 for r in debug_qs if r.get("debug_success"))
-        times = [r["time_taken"] for r in answered if r["time_taken"] > 0]
+        times = [r["time_taken"] for r in answered if r.get("time_taken", 0) > 0]
 
-        from collections import defaultdict
-        from statistics import mean
         by_topic: Dict[str, List[int]] = defaultdict(list)
         for r in self.responses:
-            by_topic[r["topic"]].append(r["score"])
+            by_topic[r.get("topic", "General")].append(r["score"])
 
         topic_breakdown = {}
         for topic, sc in sorted(by_topic.items()):
@@ -177,20 +300,19 @@ class AdvancedSession:
             }
 
         overall = round(mean(scores), 1) if scores else 0
+
         return {
             "overall_score": overall,
+            "mode": self.mode,
+            "language": self.lang,
             "metrics": {
-                "total_questions": total,
+                "total_questions": len(self.responses),
                 "answered": len(answered),
                 "skipped": skipped,
-                "completion_pct": round(len(answered) / max(total, 1) * 100),
+                "completion_pct": round(len(answered) / max(len(self.responses), 1) * 100),
                 "avg_score": overall,
                 "avg_time": round(mean(times), 1) if times else 0,
                 "total_time": round(self.elapsed_seconds()),
-                "debug_total": len(debug_qs),
-                "debug_success": debug_ok,
-                "debug_accuracy": round(debug_ok / max(len(debug_qs), 1) * 100),
-                "dsa_accuracy": round(overall * 10),
             },
             "topic_breakdown": topic_breakdown,
             "responses": self.responses,
@@ -198,19 +320,27 @@ class AdvancedSession:
 
     def to_dict(self) -> Dict:
         return {
+            "mode": self.mode,
+            "lang": self.lang,
             "index": self.index,
             "responses": self.responses,
-            "selected_qids": self.selected_qids,
+            "questions": self.questions,
             "start_time": self.start_time,
             "ended": self.ended,
+            "used_topics": self.used_topics,
+            "fallback_idx": self.fallback_idx,
         }
 
     @classmethod
-    def from_dict(cls, data: Dict):
+    def from_dict(cls, data: Dict) -> "AdvancedSession":
         return cls(
+            mode=str(data.get("mode", "debug")),
+            lang=str(data.get("lang", "python")),
             index=int(data.get("index", 0)),
             responses=list(data.get("responses", [])),
-            selected_qids=[int(q) for q in data.get("selected_qids", [])],
+            questions=list(data.get("questions", [])),
             start_time=float(data.get("start_time", time.time())),
             ended=bool(data.get("ended", False)),
+            used_topics=list(data.get("used_topics", [])),
+            fallback_idx=int(data.get("fallback_idx", 0)),
         )

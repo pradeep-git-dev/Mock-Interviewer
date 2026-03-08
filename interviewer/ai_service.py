@@ -1,5 +1,6 @@
 """
 AI evaluation service using Google Gemini.
+Supports answer evaluation, code evaluation, and question generation.
 Falls back to keyword-based evaluation if the API key is not set or the call fails.
 """
 from __future__ import annotations
@@ -14,7 +15,12 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY: Optional[str] = os.environ.get("GEMINI_API_KEY")
 
 
-def _call_gemini(system_prompt: str, user_prompt: str) -> Optional[str]:
+def _call_gemini(
+    system_prompt: str,
+    user_prompt: str,
+    max_tokens: int = 512,
+    temperature: float = 0.1,
+) -> Optional[str]:
     """Call the Gemini API and return the text response, or None on failure."""
     if not GEMINI_API_KEY:
         return None
@@ -38,8 +44,8 @@ def _call_gemini(system_prompt: str, user_prompt: str) -> Optional[str]:
                 }
             ],
             "generationConfig": {
-                "temperature": 0.1,
-                "maxOutputTokens": 512,
+                "temperature": temperature,
+                "maxOutputTokens": max_tokens,
                 "response_mime_type": "application/json",
             },
         })
@@ -51,7 +57,7 @@ def _call_gemini(system_prompt: str, user_prompt: str) -> Optional[str]:
             method="POST",
         )
 
-        with urllib.request.urlopen(req, timeout=15) as resp:
+        with urllib.request.urlopen(req, timeout=20) as resp:
             body = json.loads(resp.read().decode("utf-8"))
 
         candidates = body.get("candidates", [])
@@ -81,12 +87,8 @@ def evaluate_with_ai(topic: str, question: str, answer: str) -> Optional[Dict[st
         return None
 
     try:
-        # Strip markdown fences if present
-        text = raw.strip()
-        text = text.replace("```json", "").replace("```", "").strip()
-
+        text = raw.strip().replace("```json", "").replace("```", "").strip()
         result = json.loads(text)
-        # Validate essential keys
         score = int(result.get("score", 0))
         score = max(0, min(10, score))
         return {
@@ -97,5 +99,61 @@ def evaluate_with_ai(topic: str, question: str, answer: str) -> Optional[Dict[st
             "improvement": str(result.get("improvement", "")),
         }
     except (json.JSONDecodeError, ValueError, KeyError) as exc:
-        logger.warning("Failed to parse Gemini response: %s", exc)
+        logger.warning("Failed to parse Gemini eval response: %s", exc)
+        return None
+
+
+def evaluate_code_with_ai(
+    problem_description: str,
+    language: str,
+    submitted_code: str,
+    test_cases: list,
+    original_code: str = "",
+    question_type: str = "coding",
+) -> Optional[Dict]:
+    """
+    Use Gemini to evaluate submitted code against a problem.
+    Works for both debug fixes and coding solutions.
+    """
+    from .prompts import EVALUATE_CODE_SYSTEM, EVALUATE_CODE_USER
+
+    if question_type == "debug":
+        original_section = f"Original Buggy Code:\n```{language}\n{original_code}\n```"
+    else:
+        original_section = ""
+
+    tc_text = "\n".join(
+        f"  - Input: {tc.get('input', '')}, Expected: {tc.get('expected', '')}"
+        for tc in test_cases[:5]
+    )
+
+    user_prompt = EVALUATE_CODE_USER.format(
+        problem_description=problem_description,
+        language=language,
+        original_code_section=original_section,
+        submitted_code=submitted_code,
+        test_cases=tc_text or "No specific test cases provided.",
+    )
+
+    raw = _call_gemini(EVALUATE_CODE_SYSTEM, user_prompt, max_tokens=800)
+    if not raw:
+        return None
+
+    try:
+        text = raw.strip().replace("```json", "").replace("```", "").strip()
+        result = json.loads(text)
+        score = int(result.get("score", 0))
+        score = max(0, min(10, score))
+        return {
+            "score": score,
+            "passed_tests": int(result.get("passed_tests", 0)),
+            "total_tests": int(result.get("total_tests", len(test_cases))),
+            "feedback": str(result.get("feedback", "")),
+            "strengths": str(result.get("strengths", "")),
+            "improvement": str(result.get("improvement", "")),
+            "bugs_found": list(result.get("bugs_found", [])),
+            "complexity_analysis": str(result.get("complexity_analysis", "")),
+        }
+    except (json.JSONDecodeError, ValueError, KeyError) as exc:
+        logger.warning("Failed to parse code eval response: %s", exc)
         return None
