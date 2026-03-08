@@ -1,0 +1,88 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Select Interview — MockInterviewer</title>
+    <meta name="description" content="Select your mock interview type.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font:'Inter',-apple-system,sans-serif;
+            --bg:#030014;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+            --text:#e8ecf4;--dim:rgba(232,236,244,0.5);
+            --blue:#3b82f6;--violet:#7c3aed;--neon-blue:#60a5fa;--neon-violet:#a78bfa;
+            --glow-v:rgba(124,58,237,0.3);--r:16px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+        #bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+        .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);backdrop-filter:blur(20px)}
+        nav{position:sticky;top:0;z-index:100;padding:14px 24px;border-bottom:1px solid var(--glass-b)}
+        .logo{font-weight:800;font-size:20px;text-align:center;display:block;text-decoration:none}
+        .logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
+        
+        .main{position:relative;z-index:1;max-width:900px;margin:100px auto 40px;padding:0 24px;width:100%;flex:1}
+        .main-head{text-align:center;margin-bottom:60px;animation:fadeUp .5s ease}
+        .main-head h1{font-size:clamp(32px,5vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:12px}
+        .main-head p{font-size:16px;color:var(--dim)}
+
+        .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;animation:fadeUp .6s ease .1s both}
+        @media(max-width:768px){.grid{grid-template-columns:1fr}}
+        
+        .card{padding:40px;cursor:pointer;transition:all .3s ease;text-decoration:none;color:inherit;position:relative;overflow:hidden}
+        .card:hover{transform:translateY(-4px);border-color:rgba(124,58,237,0.3);box-shadow:0 12px 40px rgba(0,0,0,0.5),0 0 30px rgba(124,58,237,0.1)}
+        .icon{width:60px;height:60px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:28px;margin-bottom:24px}
+        .c-1 .icon{background:rgba(59,130,246,0.1);color:var(--neon-blue)}
+        .c-2 .icon{background:rgba(124,58,237,0.1);color:var(--neon-violet)}
+        .card h2{font-size:22px;font-weight:800;margin-bottom:12px}
+        .card p{font-size:15px;color:var(--dim);line-height:1.6}
+        .tags{display:flex;gap:8px;margin-top:24px;flex-wrap:wrap}
+        .tag{padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;background:rgba(255,255,255,0.05);color:var(--dim)}
+        .card::after{content:'→';position:absolute;bottom:40px;right:40px;font-size:24px;color:var(--dim);transition:transform .2s,color .2s}
+        .card:hover::after{transform:translateX(5px);color:var(--neon-violet)}
+
+        @keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+    </style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<nav><a href="/" class="logo"><span class="m">Mock</span><span class="a">Interviewer</span></a></nav>
+
+<div class="main">
+    <div class="main-head">
+        <h1>Select Interview Type</h1>
+        <p>Choose the format that fits your preparation goals.</p>
+    </div>
+    <div class="grid">
+        <a href="/theory/" class="card glass c-1">
+            <div class="icon">💬</div>
+            <h2>Beginner Theory Interview</h2>
+            <p>A conversational AI interview covering core computer science concepts, behavioral questions, and high-level system design.</p>
+            <div class="tags"><span class="tag">Behavioral</span><span class="tag">Concepts</span><span class="tag">Voice/Text</span></div>
+        </a>
+        <a href="/advanced/" class="card glass c-2">
+            <div class="icon">💻</div>
+            <h2>Advanced Coding Interview</h2>
+            <p>A rigorous 30-minute technical session featuring deep DSA snippets, tricky debugging tasks, and code editor evaluation.</p>
+            <div class="tags"><span class="tag">DSA</span><span class="tag">Code Editor</span><span class="tag">Debugging</span></div>
+        </a>
+    </div>
+    <div style="text-align:center;margin-top:40px;animation:fadeUp .6s ease .2s both">
+        <a href="/dashboard/" style="color:var(--dim);text-decoration:underline;font-size:14px;font-weight:500">View Performance Dashboard</a>
+    </div>
+</div>
+
+<script>
+(function(){const c=document.getElementById("bg"),ctx=c.getContext("2d");let w,h,nodes=[];
+function resize(){w=c.width=innerWidth;h=c.height=innerHeight;nodes=[];const cnt=Math.min(40,Math.floor(w*h/20000));
+for(let i=0;i<cnt;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()+.4})}
+function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.15)";ctx.fill()});
+for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
+if(d<150){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(96,165,250,${.05*(1-d/150)})`;ctx.lineWidth=.4;ctx.stroke()}}
+requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+</script>
+</body>
+</html>

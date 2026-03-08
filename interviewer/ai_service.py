@@ -28,15 +28,19 @@ def _call_gemini(system_prompt: str, user_prompt: str) -> Optional[str]:
             f"gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
         )
         payload = json.dumps({
+            "system_instruction": {
+                "parts": [{"text": system_prompt}]
+            },
             "contents": [
                 {
                     "role": "user",
-                    "parts": [{"text": f"{system_prompt}\n\n{user_prompt}"}],
+                    "parts": [{"text": user_prompt}],
                 }
             ],
             "generationConfig": {
-                "temperature": 0.3,
+                "temperature": 0.1,
                 "maxOutputTokens": 512,
+                "response_mime_type": "application/json",
             },
         })
 
@@ -79,11 +83,7 @@ def evaluate_with_ai(topic: str, question: str, answer: str) -> Optional[Dict[st
     try:
         # Strip markdown fences if present
         text = raw.strip()
-        if text.startswith("```"):
-            text = text.split("\n", 1)[1] if "\n" in text else text[3:]
-            if text.endswith("```"):
-                text = text[:-3]
-            text = text.strip()
+        text = text.replace("```json", "").replace("```", "").strip()
 
         result = json.loads(text)
         # Validate essential keys

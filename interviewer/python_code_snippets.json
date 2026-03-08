@@ -1,0 +1,185 @@
+{
+    "language": "python",
+    "questions": [
+        {
+            "id": 1,
+            "topic": "Graph",
+            "question": "Compute shortest path from a source node using Dijkstra.",
+            "snippet": "import heapq\npq=[]\ndist=[float('inf')]*n\nheapq.heappush(pq,(0,src))\nwhile pq:\n    d,node=heapq.heappop(pq)\n    for next,w in graph[node]:\n        if dist[next] > d+w:\n            dist[next]=d+w\n            heapq.heappush(pq,(dist[next],next))"
+        },
+        {
+            "id": 2,
+            "topic": "Graph",
+            "question": "Detect cycle in directed graph using DFS recursion stack.",
+            "snippet": "def dfs(node):\n    vis[node]=True\n    path[node]=True\n    for nei in graph[node]:\n        if not vis[nei]:\n            if dfs(nei):\n                return True\n        if path[nei]:\n            return True\n    path[node]=True\n    return False"
+        },
+        {
+            "id": 3,
+            "topic": "Graph",
+            "question": "Topological sort using Kahn's algorithm.",
+            "snippet": "from collections import deque\nq=deque()\nfor i in range(n):\n    if indegree[i]==0:\n        q.append(indegree[i])\nwhile q:\n    node=q.popleft()\n    for nei in graph[node]:\n        indegree[nei]-=1\n        if indegree[nei]==0:\n            q.append(nei)"
+        },
+        {
+            "id": 4,
+            "topic": "Union Find",
+            "question": "Find operation with path compression.",
+            "snippet": "def find(x):\n    if parent[x]==x:\n        return x\n    return find(parent[x])"
+        },
+        {
+            "id": 5,
+            "topic": "Union Find",
+            "question": "Union by rank implementation.",
+            "snippet": "def union(a,b):\n    pa=find(a)\n    pb=find(b)\n    if rank[pa] < rank[pb]:\n        parent[pa]=pb\n    elif rank[pb] < rank[pa]:\n        parent[pb]=pa\n    else:\n        parent[pb]=pa\n        rank[pb]+=1"
+        },
+        {
+            "id": 6,
+            "topic": "Binary Search",
+            "question": "Find minimum days to make bouquets.",
+            "snippet": "low=0\nhigh=max(bloomDay)\nwhile low<=high:\n    mid=(low+high)//2\n    if canMake(mid):\n        high=mid-1\n    else:\n        low=mid+1\nreturn low"
+        },
+        {
+            "id": 7,
+            "topic": "Heap",
+            "question": "Maintain k largest elements.",
+            "snippet": "import heapq\npq=[]\nfor x in nums:\n    heapq.heappush(pq,x)\n    if len(pq)>k:\n        heapq.heappop(pq)\nreturn pq[0]"
+        },
+        {
+            "id": 8,
+            "topic": "Sliding Window",
+            "question": "Longest substring without repeating characters.",
+            "snippet": "sset=set()\nleft=0\nmax_len=0\nfor right in range(len(s)):\n    while s[right] in sset:\n        sset.remove(s[left])\n        left+=1\n    sset.add(s[right])\n    max_len=max(max_len,right-left)"
+        },
+        {
+            "id": 9,
+            "topic": "Segment Tree",
+            "question": "Build segment tree for range sum.",
+            "snippet": "def build(node,l,r):\n    if l==r:\n        tree[node]=arr[l]\n        return\n    mid=(l+r)//2\n    build(2*node,l,mid)\n    build(2*node+1,mid+1,r)\n    tree[node]=tree[2*node]+tree[2*node+1]"
+        },
+        {
+            "id": 10,
+            "topic": "Segment Tree",
+            "question": "Range query on segment tree.",
+            "snippet": "def query(node,l,r,ql,qr):\n    if r<ql or l>qr:\n        return 0\n    if ql<=l and r<=qr:\n        return tree[node]\n    mid=(l+r)//2\n    return query(2*node,l,mid,ql,qr)+query(2*node+1,mid+1,r,ql,qr)"
+        },
+        {
+            "id": 11,
+            "topic": "Trie",
+            "question": "Insert word into trie.",
+            "snippet": "node=root\nfor c in word:\n    if c not in node.children:\n        node.children[c]={}\n    node=node.children[c]"
+        },
+        {
+            "id": 12,
+            "topic": "Trie",
+            "question": "Search word in trie.",
+            "snippet": "node=root\nfor c in word:\n    if c not in node.children:\n        return False\n    node=node.children[c]\nreturn True"
+        },
+        {
+            "id": 13,
+            "topic": "DP",
+            "question": "Longest increasing subsequence DP.",
+            "snippet": "dp=[1]*n\nfor i in range(1,n):\n    for j in range(i):\n        if nums[i] > nums[j]:\n            dp[i]=max(dp[i],dp[j]+1)\nreturn dp[n-1]"
+        },
+        {
+            "id": 14,
+            "topic": "DP",
+            "question": "Coin change minimum coins.",
+            "snippet": "dp=[amount+1]*(amount+1)\ndp[0]=0\nfor coin in coins:\n    for i in range(coin,amount+1):\n        dp[i]=min(dp[i],dp[i-coin]+1)\nreturn dp[amount]"
+        },
+        {
+            "id": 15,
+            "topic": "Graph",
+            "question": "Check bipartite graph using BFS.",
+            "snippet": "from collections import deque\nq=deque([start])\ncolor[start]=0\nwhile q:\n    node=q.popleft()\n    for nei in graph[node]:\n        if color[nei]==-1:\n            color[nei]=color[node]\n            q.append(nei)\n        elif color[nei]==color[node]:\n            return False"
+        },
+        {
+            "id": 16,
+            "topic": "Binary Search",
+            "question": "Find first bad version.",
+            "snippet": "while low<=high:\n    mid=(low+high)//2\n    if isBad(mid):\n        high=mid-1\n    else:\n        low=mid+1\nreturn low"
+        },
+        {
+            "id": 17,
+            "topic": "Graph",
+            "question": "Count islands using DFS.",
+            "snippet": "def dfs(r,c):\n    if r<0 or c<0 or r>=m or c>=n or grid[r][c]==0:\n        return\n    grid[r][c]=0\n    dfs(r+1,c)\n    dfs(r-1,c)\n    dfs(r,c+1)\n    dfs(r,c-1)"
+        },
+        {
+            "id": 18,
+            "topic": "Heap",
+            "question": "Merge k sorted lists.",
+            "snippet": "import heapq\npq=[]\nfor node in lists:\n    heapq.heappush(pq,node)\nwhile pq:\n    cur=heapq.heappop(pq)\n    tail.next=cur\n    tail=cur\n    if cur.next:\n        heapq.heappush(pq,cur.next)"
+        },
+        {
+            "id": 19,
+            "topic": "Graph",
+            "question": "Course schedule feasibility.",
+            "snippet": "from collections import deque\nq=deque()\nfor i in range(n):\n    if indegree[i]==0:\n        q.append(i)\nwhile q:\n    node=q.popleft()\n    count+=1\n    for nei in graph[node]:\n        indegree[nei]-=1\n        if indegree[nei]==0:\n            q.append(nei)\nreturn count==n"
+        },
+        {
+            "id": 20,
+            "topic": "DP",
+            "question": "Unique paths in grid.",
+            "snippet": "dp=[[0]*n for _ in range(m)]\nfor i in range(m):\n    dp[i][0]=1\nfor j in range(n):\n    dp[0][j]=1\nfor i in range(1,m):\n    for j in range(1,n):\n        dp[i][j]=dp[i-1][j]+dp[i][j-1]\nreturn dp[m][n]"
+        },
+        {
+            "id": 21,
+            "topic": "Binary Search",
+            "question": "Search element in rotated sorted array.",
+            "snippet": "while l<=r:\n    mid=(l+r)//2\n    if nums[mid]==target:\n        return mid\n    if nums[l]<=nums[mid]:\n        if nums[l]<=target<nums[mid]:\n            r=mid-1\n        else:\n            l=mid+1\n    else:\n        if nums[mid]<target<=nums[r]:\n            l=mid+1\n        else:\n            r=mid-1"
+        },
+        {
+            "id": 22,
+            "topic": "Stack",
+            "question": "Largest rectangle in histogram.",
+            "snippet": "stack=[]\nmax_area=0\nfor i in range(n+1):\n    h=0 if i==n else heights[i]\n    while stack and h<heights[stack[-1]]:\n        height=heights[stack.pop()]\n        width=i if not stack else i-stack[-1]-1\n        max_area=max(max_area,height*width)\n    stack.append(i)\nreturn max_area"
+        },
+        {
+            "id": 23,
+            "topic": "Graph",
+            "question": "Detect cycle in undirected graph.",
+            "snippet": "def dfs(node,parent):\n    vis[node]=True\n    for nei in graph[node]:\n        if not vis[nei]:\n            if dfs(nei,node):\n                return True\n        elif nei!=parent:\n            return True\n    return False"
+        },
+        {
+            "id": 24,
+            "topic": "DP",
+            "question": "0/1 knapsack DP.",
+            "snippet": "for i in range(1,n+1):\n    for w in range(W+1):\n        if weight[i]<=w:\n            dp[i][w]=max(dp[i-1][w],value[i]+dp[i-1][w-weight[i]])\n        else:\n            dp[i][w]=dp[i-1][w]"
+        },
+        {
+            "id": 25,
+            "topic": "Greedy",
+            "question": "Activity selection problem.",
+            "snippet": "arr.sort(key=lambda x:x.end)\ncount=1\nend=arr[0].end\nfor i in range(1,n):\n    if arr[i].start>=end:\n        count+=1\n        end=arr[i].end"
+        },
+        {
+            "id": 26,
+            "topic": "Graph",
+            "question": "Network delay time using Dijkstra.",
+            "snippet": "import heapq\npq=[(0,k)]\nwhile pq:\n    time,node=heapq.heappop(pq)\n    for v,w in graph[node]:\n        heapq.heappush(pq,(time+w,v))"
+        },
+        {
+            "id": 27,
+            "topic": "Binary Search",
+            "question": "Find peak element.",
+            "snippet": "while l<=r:\n    mid=(l+r)//2\n    if nums[mid]>nums[mid+1]:\n        r=mid-1\n    else:\n        l=mid+1\nreturn l"
+        },
+        {
+            "id": 28,
+            "topic": "DP",
+            "question": "Edit distance.",
+            "snippet": "for i in range(1,m+1):\n    for j in range(1,n+1):\n        if a[i-1]==b[j-1]:\n            dp[i][j]=dp[i-1][j-1]\n        else:\n            dp[i][j]=1+min(dp[i-1][j],dp[i][j-1],dp[i-1][j-1])"
+        },
+        {
+            "id": 29,
+            "topic": "Heap",
+            "question": "Kth smallest element in sorted matrix.",
+            "snippet": "import heapq\npq=[]\nfor i in range(n):\n    heapq.heappush(pq,(matrix[i][0],i,0))\nfor _ in range(k):\n    val,r,c=heapq.heappop(pq)\n    if c+1<n:\n        heapq.heappush(pq,(matrix[r][c+1],r,c+1))\nreturn heapq.heappop(pq)[0]"
+        },
+        {
+            "id": 30,
+            "topic": "Graph",
+            "question": "Minimum spanning tree using Prim's algorithm.",
+            "snippet": "import heapq\npq=[(0,0)]\nwhile pq:\n    weight,node=heapq.heappop(pq)\n    if vis[node]:\n        continue\n    vis[node]=True\n    cost+=weight\n    for nei,w in graph[node]:\n        heapq.heappush(pq,(w,nei))"
+        }
+    ]
+}

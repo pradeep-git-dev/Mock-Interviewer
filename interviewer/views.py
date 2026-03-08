@@ -56,8 +56,15 @@ def index(request: HttpRequest):
 
 
 @require_GET
-def past_scores_page(request: HttpRequest):
-    return render(request, "interviewer/past_scores.html")
+def select_interview_page(request: HttpRequest):
+    return render(request, "interviewer/select_interview.html")
+
+
+@never_cache
+@ensure_csrf_cookie
+@require_GET
+def theory_interview_page(request: HttpRequest):
+    return render(request, "interviewer/theory_interview.html")
 
 
 @require_GET
@@ -88,7 +95,13 @@ def submit_answer(request: HttpRequest):
         return HttpResponseBadRequest("Invalid JSON payload")
 
     answer = str(payload.get("answer", "")).strip()
+    end_interview = bool(payload.get("end_interview", False))
+    
     evaluation = session.save_response(answer)
+    
+    if end_interview:
+        # Force finish
+        session.index = len(session.questions)
 
     if session.is_finished():
         _save_session(request, session)
@@ -162,7 +175,8 @@ def advanced_interview_page(request):
 
 @require_GET
 def adv_start(request):
-    s = AdvancedSession()
+    lang = request.GET.get("lang", None)
+    s = AdvancedSession(lang=lang)
     _adv_save(request, s)
     q = s.get_current_question()
     return JsonResponse({
@@ -266,5 +280,5 @@ def adv_end(request):
 
 
 @require_GET
-def performance_dashboard_page(request):
-    return render(request, "interviewer/performance_dashboard.html")
+def dashboard_page(request):
+    return render(request, "interviewer/dashboard.html")

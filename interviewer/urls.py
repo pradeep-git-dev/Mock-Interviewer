@@ -5,9 +5,12 @@ from . import views
 urlpatterns = [
     # ── Pages ──
     path("", views.index, name="interview-home"),
-    path("past-scores/", views.past_scores_page, name="past-scores"),
+    path("select/", views.select_interview_page, name="select-interview"),
+    path("theory/", views.theory_interview_page, name="theory-interview"),
     path("advanced/", views.advanced_interview_page, name="advanced-interview"),
-    path("performance/", views.performance_dashboard_page, name="performance-dashboard"),
+    path("dashboard/", views.dashboard_page, name="dashboard"),
+    path("past-scores/", views.legacy_auth_redirect),
+    path("performance/", views.legacy_auth_redirect),
 
     # ── Basic Interview API ──
     path("api/start/", views.start_interview),

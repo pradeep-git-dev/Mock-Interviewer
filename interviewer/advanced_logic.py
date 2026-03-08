@@ -7,27 +7,42 @@ import time
 import random
 from typing import Dict, List, Optional
 
-from .advanced_questions import AdvancedQuestion, get_advanced_bank
+from .advanced_questions import AdvancedQuestion, get_advanced_bank, get_snippet_bank, get_full_advanced_bank
 from .ai_service import evaluate_with_ai
 
 
 ADVANCED_COUNT = 8
+MIN_SNIPPET_COUNT = 5  # Minimum code snippet questions per interview
 INTERVIEW_DURATION = 30 * 60  # 30 minutes in seconds
 
 
 class AdvancedSession:
     def __init__(self, questions=None, index=0, responses=None,
-                 selected_qids=None, start_time=None, ended=False):
-        bank = get_advanced_bank()
-        by_qid = {q.qid: q for q in bank}
+                 selected_qids=None, start_time=None, ended=False, lang=None):
+        full_bank = get_full_advanced_bank()
+        snippet_bank = get_snippet_bank(lang)
+        builtin_bank = get_advanced_bank()
+
+        if lang:
+            builtin_bank = [q for q in builtin_bank if q.language.lower() == lang.lower()]
+
+        by_qid = {q.qid: q for q in full_bank}
 
         if questions is not None:
             self.questions = questions
         elif selected_qids:
             self.questions = [by_qid[qid] for qid in selected_qids if qid in by_qid]
         else:
-            count = min(ADVANCED_COUNT, len(bank))
-            self.questions = random.sample(bank, count)
+            # Guarantee at least MIN_SNIPPET_COUNT code snippet questions
+            snippet_count = min(MIN_SNIPPET_COUNT, len(snippet_bank))
+            snippet_picks = random.sample(snippet_bank, snippet_count) if snippet_bank else []
+
+            # Fill remaining slots from built-in bank
+            remaining = max(0, ADVANCED_COUNT - len(snippet_picks))
+            builtin_picks = random.sample(builtin_bank, min(remaining, len(builtin_bank))) if builtin_bank and remaining > 0 else []
+
+            self.questions = snippet_picks + builtin_picks
+            random.shuffle(self.questions)
 
         self.selected_qids = [q.qid for q in self.questions]
         self.index = index

@@ -191,10 +191,8 @@
     <div class="logo"><span class="mock">Mock</span><span class="ai">Interviewer</span></div>
     <div class="nav-links">
         <a href="#features-section">Features</a>
-        <a href="#interview-section">Console</a>
-        <a href="/advanced/">Advanced</a>
-        <a href="/past-scores/">Dashboard</a>
-        <a href="#interview-section" class="cta" id="navCta">Start Interview</a>
+        <a href="/select/">Interviews</a>
+        <a href="/select/" class="cta" id="navCta">Start Interview</a>
     </div>
 </div></nav>
 
@@ -205,8 +203,7 @@
         <h1>Practice Interviews.<br><span class="grad">Dominate Real Ones.</span></h1>
         <p>AI-powered mock interviews with real-time feedback, coding challenges, and system design evaluation.</p>
         <div class="hero-btns">
-            <button class="btn btn-p" onclick="document.getElementById('interview-section').scrollIntoView({behavior:'smooth'})">🎯 Start Mock Interview</button>
-            <a href="/advanced/" class="btn btn-g">🚀 Advanced Interview</a>
+            <a href="/select/" class="btn btn-p">🎯 Start Interview</a>
         </div>
     </div>
 
@@ -259,43 +256,17 @@
     </div>
 </div></section>
 
-<!-- INTERVIEW CONSOLE -->
-<section id="interview-section"><div class="wrap">
-    <div class="section-tag">Interview Console</div>
-    <div class="section-h">Ready When You Are</div>
-    <p class="section-p">Hit start, listen, then answer by voice or text. Real-time AI feedback after every question.</p>
-    <div class="console glass">
-        <div class="con-head">
-            <div id="progress" class="con-status">Press <span class="hl">"Start Interview"</span> to begin.</div>
-            <button id="startBtn" class="btn btn-p">🎯 Start Interview</button>
-        </div>
-        <div class="prog-wrap"><div id="progressBar" class="prog-fill"></div></div>
-        <div id="feedbackPanel" class="fb-panel">
-            <div class="fb-row"><div id="feedbackScore" class="sc-circ hi">0</div><div><strong id="feedbackLabel">Previous Answer</strong><p id="feedbackText" style="margin:0"></p></div></div>
-            <div class="fb-det"><p id="feedbackStrength"></p><p id="feedbackImprovement"></p></div>
-        </div>
-        <div class="q-panel"><div id="topic" class="topic-b">—</div><div id="question" class="q-text">Your question will appear here after you start the interview.</div></div>
-        <textarea id="answer" class="ans-area" placeholder="Type or dictate your answer here..."></textarea>
-        <div class="con-actions">
-            <button id="submitBtn" class="btn btn-p" disabled>Submit Answer →</button>
-            <button id="recordBtn" class="btn btn-rec" disabled>🎤 Voice Input</button>
-        </div>
-    </div>
-    <div id="report" class="rpt glass"></div>
-</div></section>
-
 <!-- FINAL CTA -->
 <section class="final-cta"><div class="wrap">
     <div class="brain-glow"></div>
     <h2>Your Next Interview<br><span class="grad">Starts Here.</span></h2>
     <p>Join thousands of developers who practiced their way to FAANG offers. No sign-up required.</p>
     <div class="hero-btns" style="position:relative">
-        <button class="btn btn-p" onclick="document.getElementById('interview-section').scrollIntoView({behavior:'smooth'})">🚀 Start Practicing Now</button>
-        <a href="/past-scores/" class="btn btn-g">📊 View Dashboard</a>
+        <a href="/select/" class="btn btn-p">🚀 Start Practicing Now</a>
     </div>
 </div></section>
 
-<footer><p>MockInterviewer — Built with AI · <a href="/past-scores/">Dashboard</a></p></footer>
+<footer><p>MockInterviewer — Built with AI · <a href="/select/">Start Practicing</a></p></footer>
 
 <script>
 /* ═══ NEURAL NETWORK CANVAS ═══ */
@@ -333,32 +304,6 @@
 /* ═══ SCROLL ANIMATIONS ═══ */
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15});
 document.querySelectorAll('.feat-card').forEach((el,i)=>{el.style.transitionDelay=`${i*.1}s`;obs.observe(el)});
-
-/* ═══ INTERVIEW ENGINE ═══ */
-const STORAGE_KEY="mock_interview_attempts_v1";
-const startBtn=document.getElementById("startBtn"),recordBtn=document.getElementById("recordBtn"),submitBtn=document.getElementById("submitBtn"),answerBox=document.getElementById("answer"),questionEl=document.getElementById("question"),topicEl=document.getElementById("topic"),progressEl=document.getElementById("progress"),progressBar=document.getElementById("progressBar"),reportEl=document.getElementById("report"),fbPanel=document.getElementById("feedbackPanel"),fbScore=document.getElementById("feedbackScore"),fbText=document.getElementById("feedbackText"),fbStr=document.getElementById("feedbackStrength"),fbImp=document.getElementById("feedbackImprovement");
-let curQ=null,recog=null,totalQ=25,audioPlayed=false,curIdx=0;
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-if(SR){recog=new SR();recog.lang="en-US";recog.interimResults=false;recog.maxAlternatives=1;
-    recog.onresult=e=>{answerBox.value=e.results[0][0].transcript};
-    recog.onerror=()=>{progressEl.textContent="Voice failed. Type your answer.";recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording")};
-    recog.onend=()=>{recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording")}
-}
-function getCk(n){const v=`; ${document.cookie}`;const p=v.split(`; ${n}=`);if(p.length===2)return p.pop().split(";").shift();return""}
-function speak(t){return new Promise((res,rej)=>{if(!window.speechSynthesis||!t){rej(new Error("Speech unavailable."));return}const u=new SpeechSynthesisUtterance(t);u.onend=()=>res();u.onerror=()=>rej(new Error("Audio failed."));window.speechSynthesis.cancel();window.speechSynthesis.speak(u)})}
-function sf(v,d=1){return Number(v||0).toFixed(d)}
-function loadA(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return[];const p=JSON.parse(r);return Array.isArray(p)?p:[]}catch{return[]}}
-function saveA(r){const a=loadA();a.unshift({completed_at:new Date().toISOString(),report:r});localStorage.setItem(STORAGE_KEY,JSON.stringify(a.slice(0,100)))}
-function showFb(ev){if(!ev)return;fbPanel.classList.add("vis");const s=ev.score||0;fbScore.textContent=s;fbScore.className="sc-circ "+(s>=8?"hi":s>=5?"mi":"lo");fbText.textContent=ev.feedback||"";fbStr.innerHTML=ev.strengths?`<strong>✓ Strengths:</strong> ${ev.strengths}`:"";fbImp.innerHTML=ev.improvement?`<strong>△ Improve:</strong> ${ev.improvement}`:""}
-function hideFb(){fbPanel.classList.remove("vis")}
-function renderRpt(r){const o=sf(r.overall_score);let tc="";for(const[t,i]of Object.entries(r.topic_breakdown||{})){const a=sf(i.average),cl=i.average>=8?"hi":i.average>=6?"mi":"lo",bc=i.average>=8?"#34d399":i.average>=6?"var(--neon-violet)":"#fbbf24";tc+=`<div class="t-card"><div class="t-card-h"><span class="t-name">${t}</span><span class="t-sc ${cl}">${a}</span></div><div class="t-bar"><div class="t-bar-f" style="width:${i.average*10}%;background:${bc}"></div></div><p>${i.feedback}</p></div>`}
-    reportEl.innerHTML=`<div class="rpt-head"><div class="rpt-score">${o}</div><div class="rpt-info"><h3>Interview Complete!</h3><p>${r.overall_feedback}</p></div></div><div class="t-grid">${tc}</div><div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap"><button class="btn btn-p" onclick="location.reload()">🔄 Retry</button><a href="/past-scores/" class="btn btn-g">📊 Dashboard</a></div>`;reportEl.classList.add("vis")}
-function showQ(d){curQ=d.question;totalQ=d.total_questions||totalQ;curIdx=d.question_index||1;audioPlayed=false;questionEl.textContent=curQ.prompt;topicEl.textContent=curQ.topic;progressEl.innerHTML=`Question <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span> — listening...`;progressBar.style.width=`${((curIdx-1)/totalQ)*100}%`;answerBox.value="";recordBtn.disabled=!recog;submitBtn.disabled=true;
-    speak(curQ.prompt).then(()=>{audioPlayed=true;progressEl.innerHTML=`Question <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span>`;submitBtn.disabled=false}).catch(e=>{progressEl.textContent=e.message;submitBtn.disabled=true})}
-startBtn.addEventListener("click",async()=>{try{const r=await fetch("/api/start/");if(!r.ok)throw new Error(`${r.status}`);const d=await r.json();reportEl.classList.remove("vis");reportEl.innerHTML="";hideFb();showQ(d)}catch(e){progressEl.textContent=`Error: ${e.message}`}});
-document.getElementById("navCta").addEventListener("click",e=>{e.preventDefault();document.getElementById("interview-section").scrollIntoView({behavior:"smooth"});setTimeout(()=>startBtn.click(),500)});
-recordBtn.addEventListener("click",()=>{if(!recog)return;recordBtn.textContent="⏺ Listening...";recordBtn.classList.add("recording");recog.start()});
-submitBtn.addEventListener("click",async()=>{try{if(!audioPlayed){progressEl.textContent="Listen to the question first.";return}submitBtn.disabled=true;submitBtn.textContent="Evaluating...";const a=answerBox.value.trim(),r=await fetch("/api/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:a})});if(!r.ok)throw new Error(`${r.status}`);const d=await r.json();if(d.finished){submitBtn.disabled=true;recordBtn.disabled=true;progressEl.innerHTML=`<span class="hl">Interview finished!</span> Report saved.`;progressBar.style.width="100%";if(d.last_evaluation)showFb(d.last_evaluation);renderRpt(d.report);saveA(d.report);submitBtn.textContent="Submit Answer →";return}if(d.evaluation)showFb(d.evaluation);showQ(d);submitBtn.textContent="Submit Answer →"}catch(e){progressEl.textContent=`Error: ${e.message}`;submitBtn.disabled=false;submitBtn.textContent="Submit Answer →"}});
 </script>
 </body>
 </html>

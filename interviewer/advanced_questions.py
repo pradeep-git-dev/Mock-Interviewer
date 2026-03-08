@@ -174,10 +174,25 @@ def get_advanced_bank() -> List[AdvancedQuestion]:
     ]
 
 
+def get_full_advanced_bank() -> List[AdvancedQuestion]:
+    """Return the built-in bank PLUS all JSON snippet questions."""
+    from .snippet_loader import load_snippet_questions
+    return get_advanced_bank() + load_snippet_questions()
+
+
+def get_snippet_bank(language: Optional[str] = None) -> List[AdvancedQuestion]:
+    """Return ONLY the JSON snippet questions, optionally filtered by language."""
+    from .snippet_loader import load_snippet_questions
+    bank = load_snippet_questions()
+    if language:
+        bank = [q for q in bank if q.language.lower() == language.lower()]
+    return bank
+
+
 def get_advanced_questions(count: int = 8) -> List[AdvancedQuestion]:
-    bank = get_advanced_bank()
+    bank = get_full_advanced_bank()
     return random.sample(bank, min(count, len(bank)))
 
 
 def get_advanced_topics() -> List[str]:
-    return sorted({q.topic for q in get_advanced_bank()})
+    return sorted({q.topic for q in get_full_advanced_bank()})

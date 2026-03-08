@@ -23,7 +23,7 @@ class InterviewFlowTests(SimpleTestCase):
     def test_home_is_public_and_loads_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Interview Console")
+        self.assertContains(response, "Practice Interviews")
 
     def test_question_bank_has_more_than_25_and_expected_topics(self):
         questions = get_question_bank()
@@ -72,7 +72,7 @@ class InterviewFlowTests(SimpleTestCase):
 
         self.assertEqual(self.client.get("/api/history/").status_code, 404)
 
-    def test_past_scores_page_loads_without_auth(self):
-        response = self.client.get("/past-scores/")
+    def test_dashboard_page_loads_without_auth(self):
+        response = self.client.get("/dashboard/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Interview Dashboard")
+        self.assertContains(response, "Performance Dashboard")

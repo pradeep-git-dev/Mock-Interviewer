@@ -1,0 +1,231 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beginner Theory Interview — MockInterviewer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font:'Inter',-apple-system,sans-serif;
+            --bg:#030014;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
+            --text:#e8ecf4;--dim:rgba(232,236,244,0.5);
+            --blue:#3b82f6;--violet:#7c3aed;--neon-blue:#60a5fa;--neon-violet:#a78bfa;
+            --glow-v:rgba(124,58,237,0.3);--r:16px;
+        }
+        *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+        #bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+        .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);backdrop-filter:blur(20px)}
+        
+        .top-bar{position:sticky;top:0;z-index:100;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;
+            background:rgba(3,0,20,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b)}
+        .logo{font-weight:800;font-size:18px;text-decoration:none}.logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
+        .btn{display:inline-flex;align-items:center;gap:6px;padding:10px 20px;border-radius:10px;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;border:none;transition:all .2s;text-decoration:none}
+        .btn-end{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.2)}
+        .btn-end:hover{background:rgba(248,113,113,0.22)}
+        .btn-p{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;box-shadow:0 4px 20px var(--glow-v)}
+        .btn-p:hover:not(:disabled){transform:translateY(-1px)}.btn-p:disabled{opacity:.4;cursor:not-allowed}
+        .btn-rec{background:rgba(255,255,255,0.05);color:var(--text);border:1px solid var(--dim)}.btn-rec:disabled{opacity:.4;cursor:not-allowed}
+        .btn-rec.recording{background:rgba(248,113,113,0.15);color:#f87171;border-color:rgba(248,113,113,0.3);animation:pulse 1.5s infinite}
+
+        .main{position:relative;z-index:1;max-width:800px;margin:40px auto;padding:0 24px;width:100%;flex:1}
+        .console{padding:32px}
+        .con-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+        .con-status{font-weight:600;font-size:15px;color:var(--dim)}
+        .con-status .hl{color:var(--neon-blue)}
+        .prog-wrap{width:100%;height:4px;border-radius:4px;background:rgba(255,255,255,0.06);margin-bottom:24px;overflow:hidden}
+        .prog-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--violet),var(--blue));transition:width .5s ease;width:0%}
+        
+        .fb-panel{display:none;background:rgba(255,255,255,0.03);border:1px solid var(--glass-b);border-radius:10px;padding:20px;margin-bottom:24px;animation:slideIn .3s ease}
+        .fb-panel.vis{display:block}
+        .fb-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+        .sc-circ{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:#fff}
+        .sc-circ.hi{background:linear-gradient(135deg,#34d399,#10b981)}.sc-circ.mi{background:linear-gradient(135deg,var(--violet),#5b3fd4)}.sc-circ.lo{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+        .fb-det p{font-size:13px;color:var(--dim);margin-bottom:4px}.fb-det strong{color:var(--text)}
+
+        .q-panel{background:rgba(255,255,255,0.02);border:1px solid var(--glass-b);border-radius:10px;padding:24px;margin-bottom:24px;min-height:110px;position:relative;overflow:hidden}
+        .q-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--violet),var(--blue))}
+        .topic-b{display:inline-block;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;margin-bottom:10px;background:rgba(124,58,237,0.12);color:var(--neon-violet);border:1px solid rgba(124,58,237,0.2)}
+        .q-text{font-size:16px;font-weight:500;line-height:1.6;color:var(--text)}
+        .typing-cursor{display:inline-block;width:2px;height:1em;background:var(--neon-violet);animation:blink .7s infinite;vertical-align:text-bottom;margin-left:2px}
+
+        .ans-area{width:100%;min-height:150px;padding:16px;border-radius:10px;border:1px solid var(--glass-b);background:rgba(255,255,255,0.02);color:var(--text);font-family:var(--font);font-size:15px;resize:vertical;outline:none;transition:all .2s;margin-bottom:20px}
+        .ans-area:focus{border-color:rgba(124,58,237,0.3);box-shadow:0 0 0 3px rgba(124,58,237,0.1)}
+        .con-actions{display:flex;gap:12px}
+
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+        @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+        @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+        .completion-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(3,0,20,0.92);backdrop-filter:blur(20px);align-items:center;justify-content:center}
+        .completion-overlay.vis{display:flex}
+        .completion-card{max-width:520px;width:90%;padding:40px;text-align:center}
+        .completion-card h2{font-size:28px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .completion-card .stat-row{display:flex;justify-content:center;gap:24px;margin:20px 0}
+        .completion-card .stat{text-align:center}.completion-card .stat .val{font-size:32px;font-weight:900;color:var(--neon-violet)}.completion-card .stat .lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
+        .completion-card .btn-dash{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px var(--glow-v);text-decoration:none;margin-top:16px;transition:transform .2s}
+        .completion-card .btn-dash:hover{transform:translateY(-2px)}
+    </style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+
+<div class="top-bar">
+    <a href="/select/" class="logo"><span class="m">Mock</span><span class="a">Interviewer</span> <span style="font-weight:400;font-size:12px;color:var(--dim)">THEORY</span></a>
+    <button id="endBtn" class="btn btn-end" disabled>⏹ End Interview</button>
+</div>
+
+<div class="main">
+    <div class="console glass">
+        <div class="con-head">
+            <div id="progress" class="con-status">Press <span class="hl">"Start Interview"</span> to begin.</div>
+            <button id="startBtn" class="btn btn-p">🎯 Start Interview</button>
+        </div>
+        <div class="prog-wrap"><div id="progressBar" class="prog-fill"></div></div>
+        
+        <div id="feedbackPanel" class="fb-panel">
+            <div class="fb-row"><div id="feedbackScore" class="sc-circ hi">0</div><div><strong id="feedbackLabel">Previous Answer</strong><p id="feedbackText" style="margin:0"></p></div></div>
+            <div class="fb-det"><p id="feedbackStrength"></p><p id="feedbackImprovement"></p></div>
+        </div>
+
+        <div class="q-panel">
+            <div id="topic" class="topic-b">—</div>
+            <div id="question" class="q-text">Your question will appear here after you start the interview.</div>
+        </div>
+        
+        <textarea id="answer" class="ans-area" placeholder="Type or dictate your answer here..."></textarea>
+        
+        <div class="con-actions">
+            <button id="submitBtn" class="btn btn-p" disabled>Submit Answer →</button>
+            <button id="recordBtn" class="btn btn-rec" disabled>🎤 Voice Input</button>
+        </div>
+    </div>
+</div>
+
+<!-- COMPLETION OVERLAY -->
+<div id="completionOverlay" class="completion-overlay">
+    <div class="completion-card glass">
+        <h2>🎉 Interview Complete!</h2>
+        <p style="color:var(--dim);font-size:14px;margin-bottom:12px">Your theory interview has been submitted and scored.</p>
+        <div class="stat-row">
+            <div class="stat"><div id="compScore" class="val">—</div><div class="lbl">Overall Score</div></div>
+            <div class="stat"><div id="compAnswered" class="val">—</div><div class="lbl">Questions</div></div>
+        </div>
+        <a href="/dashboard/" class="btn-dash">📊 Take me to Dashboard</a>
+    </div>
+</div>
+
+<script>
+const STORAGE_KEY="mock_interview_attempts_v1"; // Uses existing key
+const startBtn=document.getElementById("startBtn"),recordBtn=document.getElementById("recordBtn"),submitBtn=document.getElementById("submitBtn"),endBtn=document.getElementById("endBtn"),answerBox=document.getElementById("answer"),questionEl=document.getElementById("question"),topicEl=document.getElementById("topic"),progressEl=document.getElementById("progress"),progressBar=document.getElementById("progressBar");
+const fbPanel=document.getElementById("feedbackPanel"),fbScore=document.getElementById("feedbackScore"),fbText=document.getElementById("feedbackText"),fbStr=document.getElementById("feedbackStrength"),fbImp=document.getElementById("feedbackImprovement");
+
+let totalQ=25,curIdx=0,audioPlayed=false,started=false,curReport=null;
+const completionOverlay=document.getElementById('completionOverlay');
+function showCompletion(report){
+    document.getElementById('compScore').textContent=(report.overall_score||0).toFixed(1);
+    document.getElementById('compAnswered').textContent=report.responses?.length||report.topic_breakdown?Object.values(report.topic_breakdown).reduce((s,v)=>s+v.count,0):0;
+    completionOverlay.classList.add('vis');
+}
+let recog=null;const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+if(SR){recog=new SR();recog.lang="en-US";recog.interimResults=false;recog.maxAlternatives=1;
+    recog.onresult=e=>{answerBox.value=e.results[0][0].transcript};
+    recog.onerror=()=>{recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording");alert("Voice failed. Please type.")};
+    recog.onend=()=>{recordBtn.textContent="🎤 Voice Input";recordBtn.classList.remove("recording")}
+}
+
+function getCk(n){const v=`; ${document.cookie}`;const p=v.split(`; ${n}=`);if(p.length===2)return p.pop().split(";").shift();return""}
+function speak(t){return new Promise((res,rej)=>{if(!window.speechSynthesis||!t){rej(new Error("Speech unavailable."));return}const u=new SpeechSynthesisUtterance(t);u.onend=()=>res();u.onerror=()=>rej(new Error("Audio failed."));window.speechSynthesis.cancel();window.speechSynthesis.speak(u)})}
+function loadA(){try{const r=localStorage.getItem(STORAGE_KEY);if(!r)return[];const p=JSON.parse(r);return Array.isArray(p)?p:[]}catch{return[]}}
+function saveA(r){const a=loadA();a.unshift({completed_at:new Date().toISOString(),report:r});localStorage.setItem(STORAGE_KEY,JSON.stringify(a.slice(0,100)))}
+
+function typeText(el,text,speed=18){
+    el.innerHTML="";let i=0;const cursor=document.createElement("span");cursor.className="typing-cursor";el.appendChild(cursor);
+    return new Promise(resolve=>{
+        function step(){if(i<text.length){el.insertBefore(document.createTextNode(text[i]),cursor);i++;setTimeout(step,speed)}else{cursor.remove();resolve()}}
+        step();
+    });
+}
+
+function showFb(ev){if(!ev)return;fbPanel.classList.add("vis");const s=ev.score||0;fbScore.textContent=s;fbScore.className="sc-circ "+(s>=8?"hi":s>=5?"mi":"lo");fbText.textContent=ev.feedback||"";fbStr.innerHTML=ev.strengths?`<strong>✓ Strengths:</strong> ${ev.strengths}`:"";fbImp.innerHTML=ev.improvement?`<strong>△ Improve:</strong> ${ev.improvement}`:""}
+
+function showQ(d){
+    const q=d.question;totalQ=d.total_questions||totalQ;curIdx=d.question_index||1;audioPlayed=false;
+    topicEl.textContent=q.topic;progressEl.innerHTML=`Question <span class="hl">${curIdx}</span> of <span class="hl">${totalQ}</span>`;
+    progressBar.style.width=`${((curIdx-1)/totalQ)*100}%`;answerBox.value="";
+    recordBtn.disabled=!recog;submitBtn.disabled=true;
+    
+    typeText(questionEl,q.prompt).then(()=>{
+        speak(q.prompt).then(()=>{audioPlayed=true;submitBtn.disabled=false}).catch(()=>{audioPlayed=true;submitBtn.disabled=false});
+    });
+}
+
+startBtn.addEventListener("click",async()=>{
+    try{
+        startBtn.style.display="none";
+        const r=await fetch("/api/start/");if(!r.ok)throw new Error(`${r.status}`);
+        const d=await r.json();fbPanel.classList.remove("vis");
+        started=true;endBtn.disabled=false;showQ(d);
+    }catch(e){progressEl.textContent=`Error: ${e.message}`}
+});
+
+recordBtn.addEventListener("click",()=>{
+    if(!recog)return;recordBtn.textContent="⏺ Listening...";recordBtn.classList.add("recording");recog.start();
+});
+
+submitBtn.addEventListener("click",async()=>{
+    try{
+        if(!audioPlayed){progressEl.textContent="Listen/wait for the question first.";return}
+        submitBtn.disabled=true;submitBtn.textContent="Evaluating...";
+        const a=answerBox.value.trim(),r=await fetch("/api/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:a, end_interview:false})});
+        if(!r.ok)throw new Error(`${r.status}`);
+        const d=await r.json();
+        
+        if(d.finished){
+            if(d.last_evaluation)showFb(d.last_evaluation);
+            saveA(d.report);
+            showCompletion(d.report);
+            return;
+        }
+        if(d.evaluation)showFb(d.evaluation);
+        showQ(d);submitBtn.textContent="Submit Answer →";
+    }catch(e){progressEl.textContent=`Error: ${e.message}`;submitBtn.disabled=false;submitBtn.textContent="Submit Answer →"}
+});
+
+// For Ending Interview early
+endBtn.addEventListener("click",async()=>{
+    if(!started)return;
+    if(!confirm("End the interview early?"))return;
+    endBtn.disabled=true;submitBtn.disabled=true;recordBtn.disabled=true;
+    try {
+        const a=answerBox.value.trim();
+        // Send what they have as the last answer but with a custom flag if possible. We can just submit empty if we want to end
+        progressEl.textContent="Saving session & calculating scores...";
+        // Workaround: just submit empty answer and the server will score it as 0. 
+        // We could also add a dedicated end_interview endpoint for theory, but sending empty answer multiple times is tedious.
+        // Let's rely on the client side saving what it has, OR triggering a skip?
+        // Wait, the backend logic expects 25 questions to finish. We need to add an end capability to it.
+        // Actually since we don't have an `api/end/` we can just send `{"end_interview": true}` to `api/answer/` and edit python.
+        const r=await fetch("/api/answer/",{method:"POST",headers:{"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},body:JSON.stringify({answer:a, end_interview:true})});
+        const d=await r.json();
+        if(d.report){
+            saveA(d.report);
+            showCompletion(d.report);
+        }
+    } catch(e){
+        progressEl.textContent="Error saving session.";
+    }
+});
+
+/* BG */
+(function(){const c=document.getElementById("bg"),ctx=c.getContext("2d");let w,h,nodes=[];
+function resize(){w=c.width=innerWidth;h=c.height=innerHeight;nodes=[];const cnt=Math.min(30,Math.floor(w*h/20000));
+for(let i=0;i<cnt;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()+.4})}
+function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;
+ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.15)";ctx.fill()});
+requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+</script>
+</body>
+</html>
