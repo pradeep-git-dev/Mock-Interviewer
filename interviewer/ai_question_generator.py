@@ -16,7 +16,10 @@ from .prompts import (
     GENERATE_DEBUG_QUESTION_USER,
     GENERATE_CODING_QUESTION_SYSTEM,
     GENERATE_CODING_QUESTION_USER,
+    GENERATE_LOGICAL_QUESTION_SYSTEM,
+    GENERATE_LOGICAL_QUESTION_USER,
     DSA_TOPICS,
+    LOGICAL_TOPICS,
     DSA_DIFFICULTIES,
     DIFFICULTY_WEIGHTS,
 )
@@ -29,6 +32,14 @@ def _pick_topic(used_topics: List[str]) -> str:
     available = [t for t in DSA_TOPICS if t not in used_topics]
     if not available:
         available = DSA_TOPICS
+    return random.choice(available)
+
+
+def _pick_logical_topic(used_topics: List[str]) -> str:
+    """Pick a logical topic that hasn't been used recently."""
+    available = [t for t in LOGICAL_TOPICS if t not in used_topics]
+    if not available:
+        available = LOGICAL_TOPICS
     return random.choice(available)
 
 
@@ -162,6 +173,57 @@ def generate_coding_question(
         logger.warning("Failed to parse AI coding question: %s", exc)
         return None
 
+
+def generate_logical_question(
+    used_topics: List[str],
+    question_number: int = 1,
+    total_questions: int = 5,
+) -> Optional[Dict]:
+    """
+    Generate a logical/reasoning question using AI.
+    Returns a dict with topic, title, description, correct_answer.
+    """
+    difficulty = _pick_difficulty(question_number, total_questions)
+    topic = _pick_logical_topic(used_topics)
+
+    user_prompt = GENERATE_LOGICAL_QUESTION_USER.format(
+        difficulty=difficulty,
+        topic=topic,
+        used_topics=", ".join(used_topics[-5:]) if used_topics else "none",
+    )
+
+    raw = _call_gemini(
+        GENERATE_LOGICAL_QUESTION_SYSTEM,
+        user_prompt,
+        max_tokens=1000,
+        temperature=0.8,
+    )
+
+    if not raw:
+        logger.warning("AI logical question generation failed, using fallback")
+        return None
+
+    try:
+        text = raw.strip().replace("```json", "").replace("```", "").strip()
+        data = json.loads(text)
+
+        required = ["topic", "title", "description", "correct_answer"]
+        if not all(data.get(k) for k in required):
+            logger.warning("AI logical response missing fields: %s", data.keys())
+            return None
+
+        return {
+            "type": "logical",
+            "topic": str(data["topic"]),
+            "title": str(data["title"]),
+            "difficulty": str(data.get("difficulty", difficulty)),
+            "description": str(data["description"]),
+            "hints": list(data.get("hints", [])),
+            "correct_answer": str(data["correct_answer"]),
+        }
+    except (json.JSONDecodeError, ValueError, KeyError) as exc:
+        logger.warning("Failed to parse AI logical question: %s", exc)
+        return None
 
 # ═══════════════════════════════════════════════
 #  FALLBACK QUESTIONS (when AI is unavailable)
@@ -338,6 +400,31 @@ _FALLBACK_CODING = {
 }
 
 
+_FALLBACK_LOGICAL = [
+    {
+        "type": "logical", "topic": "Math Puzzles", "title": "Lily Pad Puzzle",
+        "difficulty": "Easy",
+        "description": "A lily pad in a pond doubles in size every day. It takes 30 days to cover the entire pond. How long does it take to cover half the pond?",
+        "correct_answer": "29 days. Since it doubles every day, it must have been half the size the day before it covered the whole pond.",
+        "hints": ["Work backwards from day 30.", "If it's full on day 30 and doubles each day, what was it on day 29?"],
+    },
+    {
+        "type": "logical", "topic": "Probability", "title": "Three Doors (Monty Hall)",
+        "difficulty": "Medium",
+        "description": "You are on a game show with 3 doors. Behind one is a car; behind the others, goats. You pick a door (say, Door 1). The host, who knows what's behind the doors, opens another door (say, Door 3) to reveal a goat. He then offers you the chance to switch your choice to Door 2. Should you switch? Why?",
+        "correct_answer": "Yes, you should switch. Initially, you have a 1/3 chance of picking the car and a 2/3 chance of picking a goat. If you picked a goat, switching guarantees you the car. Thus, switching gives you a 2/3 chance of winning.",
+        "hints": ["What is the probability you picked the car correctly on your first guess?", "If there is only a 1/3 chance you were right, there is a 2/3 chance the car is behind one of the other doors."],
+    },
+    {
+        "type": "logical", "topic": "Brainteasers", "title": "Two Ropes",
+        "difficulty": "Hard",
+        "description": "You have two ropes. Each rope takes exactly 60 minutes to burn completely, but they do NOT burn at a uniform rate (e.g., half the rope might burn in 10 mins and the rest in 50 mins). How can you measure exactly 45 minutes using only these two ropes and a lighter?",
+        "correct_answer": "Light the first rope at both ends, and the second rope at one end. The first rope will burn out in exactly 30 minutes. At the moment it burns out, light the other end of the second rope. The second rope, which has 30 minutes left to burn, will now burn out in exactly 15 minutes. 30 + 15 = 45 minutes.",
+        "hints": ["What happens if you light a 60 minute rope from both ends?", "When a rope lit at both ends finishes, how much time has passed?"],
+    }
+]
+
+
 def get_fallback_debug(language: str, used_indices: List[int]) -> Optional[Dict]:
     """Return a fallback debug question for the given language."""
     bank = _FALLBACK_DEBUG.get(language, _FALLBACK_DEBUG["python"])
@@ -350,6 +437,15 @@ def get_fallback_debug(language: str, used_indices: List[int]) -> Optional[Dict]
 def get_fallback_coding(language: str, used_indices: List[int]) -> Optional[Dict]:
     """Return a fallback coding question for the given language."""
     bank = _FALLBACK_CODING.get(language, _FALLBACK_CODING["python"])
+    available = [q for i, q in enumerate(bank) if i not in used_indices]
+    if not available:
+        available = bank
+    return random.choice(available) if available else None
+
+
+def get_fallback_logical(used_indices: List[int]) -> Optional[Dict]:
+    """Return a fallback logical question."""
+    bank = _FALLBACK_LOGICAL
     available = [q for i, q in enumerate(bank) if i not in used_indices]
     if not available:
         available = bank

@@ -160,9 +160,9 @@ def advanced_interview_page(request):
 @require_GET
 def adv_start(request):
     lang = request.GET.get("lang", "python")
-    mode = request.GET.get("mode", "debug")  # "debug" or "coding"
+    mode = request.GET.get("mode", "debug")  # "debug" or "logical"
 
-    if mode not in ("debug", "coding"):
+    if mode not in ("debug", "logical"):
         mode = "debug"
 
     s = AdvancedSession(mode=mode, lang=lang)
@@ -244,7 +244,7 @@ def adv_answer(request):
         response_data["evaluation"]["fixed_code"] = eval_result.get("fixed_code", "")
         response_data["evaluation"]["bug_explanation"] = eval_result.get("bug_explanation", "")
     else:
-        response_data["evaluation"]["solution_code"] = eval_result.get("solution_code", "")
+        response_data["evaluation"]["correct_answer"] = eval_result.get("correct_answer", "")
 
     return JsonResponse(response_data)
 

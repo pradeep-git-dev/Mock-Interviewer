@@ -1,7 +1,7 @@
 """
 Advanced interview session logic with two modes:
   Mode 1 – Debugging Round: Fix buggy code
-  Mode 2 – Coding Round: Solve DSA problems
+  Mode 2 – Logical Round: Solve reasoning & logic puzzles
 
 Questions are dynamically generated via AI with static fallbacks.
 """
@@ -17,8 +17,10 @@ from .ai_service import evaluate_code_with_ai, evaluate_with_ai
 from .ai_question_generator import (
     generate_debug_question,
     generate_coding_question,
+    generate_logical_question,
     get_fallback_debug,
     get_fallback_coding,
+    get_fallback_logical,
 )
 
 
@@ -28,8 +30,8 @@ INTERVIEW_DURATION = 30 * 60  # 30 minutes
 
 class AdvancedSession:
     """
-    Manages an advanced coding interview session.
-    Supports modes: 'debug' and 'coding'.
+    Manages an advanced interview session.
+    Supports modes: 'debug' and 'logical'.
     Questions are generated one at a time (on-demand) from AI.
     """
 
@@ -45,7 +47,7 @@ class AdvancedSession:
         used_topics: Optional[List[str]] = None,
         fallback_idx: int = 0,
     ):
-        self.mode = mode  # "debug" or "coding"
+        self.mode = mode  # "debug" or "logical"
         self.lang = lang
         self.index = index
         self.responses: List[Dict] = responses or []
@@ -68,11 +70,12 @@ class AdvancedSession:
                 q = get_fallback_debug(self.lang, list(range(self.fallback_idx)))
                 self.fallback_idx += 1
         else:
-            q = generate_coding_question(
-                self.lang, self.used_topics, qnum, self.total_questions
+            # Logical mode
+            q = generate_logical_question(
+                self.used_topics, qnum, self.total_questions
             )
             if not q:
-                q = get_fallback_coding(self.lang, list(range(self.fallback_idx)))
+                q = get_fallback_logical(list(range(self.fallback_idx)))
                 self.fallback_idx += 1
 
         if q:
@@ -109,18 +112,14 @@ class AdvancedSession:
                 "hints": q.get("hints", []),
             }
         else:
+            # Logical mode
             return {
-                "type": "coding",
+                "type": "logical",
                 "topic": q.get("topic", ""),
                 "title": q.get("title", ""),
                 "difficulty": q.get("difficulty", "Medium"),
                 "description": q.get("description", ""),
-                "examples": q.get("examples", []),
-                "constraints": q.get("constraints", []),
-                "starter_code": q.get("starter_code", ""),
-                "language": q.get("language", self.lang),
-                "time_complexity": q.get("time_complexity", ""),
-                "space_complexity": q.get("space_complexity", ""),
+                "hints": q.get("hints", []),
             }
 
     def elapsed_seconds(self) -> float:
@@ -136,7 +135,7 @@ class AdvancedSession:
         return self.ended or self.index >= self.total_questions or self.is_time_up()
 
     def evaluate_answer(self, submitted_code: str) -> Dict:
-        """Evaluate the candidate's submitted code using AI."""
+        """Evaluate the candidate's submitted answer using AI."""
         if self.index >= len(self.questions):
             return {"score": 0, "feedback": "No question to evaluate."}
 
@@ -144,8 +143,8 @@ class AdvancedSession:
         q_start = question.get("q_start", time.time())
         time_taken = round(time.time() - q_start, 1)
 
-        # Try AI code evaluation
         if self.mode == "debug":
+            # Debug mode: AI code evaluation
             ai_result = evaluate_code_with_ai(
                 problem_description=question.get("description", ""),
                 language=self.lang,
@@ -155,16 +154,15 @@ class AdvancedSession:
                 question_type="debug",
             )
         else:
-            ai_result = evaluate_code_with_ai(
-                problem_description=question.get("description", ""),
-                language=self.lang,
-                submitted_code=submitted_code,
-                test_cases=question.get("test_cases", []),
-                question_type="coding",
+            # Logical mode: AI text-based evaluation
+            ai_result = evaluate_with_ai(
+                question.get("topic", "Logic"),
+                question.get("description", ""),
+                submitted_code,
             )
 
         if ai_result:
-            score = ai_result["score"]
+            score = ai_result.get("score", 0)
             feedback = ai_result.get("feedback", "")
             strengths = ai_result.get("strengths", "")
             improvement = ai_result.get("improvement", "")
@@ -173,14 +171,14 @@ class AdvancedSession:
             total_tests = ai_result.get("total_tests", 0)
             complexity = ai_result.get("complexity_analysis", "")
         else:
-            # Basic fallback: compare against solution
+            # Basic fallback
             score = self._fallback_score(submitted_code, question)
-            feedback = "Code evaluated using structural comparison."
-            strengths = "Submitted code for evaluation." if submitted_code.strip() else ""
-            improvement = "Ensure your solution handles all edge cases."
+            feedback = "Response evaluated using basic comparison."
+            strengths = "Submitted a response for evaluation." if submitted_code.strip() else ""
+            improvement = "Provide more detailed reasoning."
             bugs_found = []
             passed_tests = 0
-            total_tests = len(question.get("test_cases", []))
+            total_tests = 0
             complexity = ""
 
         payload = {
@@ -210,9 +208,9 @@ class AdvancedSession:
             payload["bug_explanation"] = question.get("bug_explanation", "")
             payload["description"] = question.get("description", "")
         else:
+            # Logical mode
             payload["description"] = question.get("description", "")
-            payload["solution_code"] = question.get("solution_code", "")
-            payload["starter_code"] = question.get("starter_code", "")
+            payload["correct_answer"] = question.get("correct_answer", "")
 
         self.responses.append(payload)
         self.index += 1
@@ -264,7 +262,7 @@ class AdvancedSession:
             payload["description"] = question.get("description", "")
         else:
             payload["description"] = question.get("description", "")
-            payload["solution_code"] = question.get("solution_code", "")
+            payload["correct_answer"] = question.get("correct_answer", "")
 
         self.responses.append(payload)
         self.index += 1

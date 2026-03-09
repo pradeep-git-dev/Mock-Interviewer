@@ -125,6 +125,38 @@ Respond with JSON only."""
 
 
 # ═══════════════════════════════════════════════
+#  LOGICAL QUESTION GENERATION
+# ═══════════════════════════════════════════════
+
+GENERATE_LOGICAL_QUESTION_SYSTEM = """You are a senior technical interviewer.
+Generate a reasoning or logic puzzle question for a software engineering interview.
+These questions test analytical thinking, rather than direct code implementation.
+
+Topics can be: System Design Basics, Brainteasers, Probability, Concurrency Concepts, Math Puzzles.
+
+You MUST respond with ONLY valid JSON:
+{
+  "topic": "<Logical topic e.g. Math, Probability, System Design, Concurrency, Algorithms>",
+  "title": "<short descriptive title>",
+  "difficulty": "<Easy|Medium|Hard>",
+  "description": "<clear, complete problem statement in 2-5 sentences>",
+  "hints": ["<hint1>", "<hint2>"],
+  "correct_answer": "<a brief explanation of the correct answer and the reasoning behind it>"
+}
+"""
+
+GENERATE_LOGICAL_QUESTION_USER = """Generate a {difficulty} logical reasoning or puzzle question.
+
+Topic preference: {topic}
+Requirements:
+- Must test logic, math, system design reasoning, or algorithmic thinking without requiring code.
+- Provide a clear and unambiguous correct answer in the 'correct_answer' field.
+- Previously used topics to avoid: {used_topics}
+
+Respond with JSON only."""
+
+
+# ═══════════════════════════════════════════════
 #  CODE SUBMISSION EVALUATION
 # ═══════════════════════════════════════════════
 
@@ -178,6 +210,12 @@ DSA_TOPICS = [
     "Dynamic Programming", "Recursion", "Backtracking",
     "Greedy Algorithms", "Trie", "Union Find",
     "Sliding Window", "Two Pointers",
+]
+
+LOGICAL_TOPICS = [
+    "Probability", "Math Puzzles", "Concurrency", 
+    "System Design Basics", "Algorithmic Reasoning", 
+    "Brainteasers", "Logic Gates", "Combinatorics"
 ]
 
 DSA_DIFFICULTIES = ["Easy", "Medium", "Hard"]

@@ -4,33 +4,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Advanced Coding Interview — MockInterviewer</title>
-    <meta name="description" content="Interactive coding interview with debugging and coding rounds, AI-powered evaluation.">
+    <title>Advanced Interview — MockInterviewer</title>
+    <meta name="description" content="Interactive advanced interview with debugging and logical rounds, AI-powered evaluation.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Fira+Code:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        /* ── THEME VARIABLES ── */
         :root {
             --font:'Inter',-apple-system,sans-serif;--mono:'Fira Code',monospace;
+            --r:12px;
+            /* Dark theme (default) */
             --bg:#0a0a1a;--bg2:#0f0f23;--glass:rgba(255,255,255,0.04);--glass-b:rgba(255,255,255,0.08);
             --text:#e8ecf4;--dim:rgba(232,236,244,0.5);
             --blue:#3b82f6;--violet:#7c3aed;--cyan:#06b6d4;
             --neon-blue:#60a5fa;--neon-violet:#a78bfa;--neon-cyan:#22d3ee;
             --green:#34d399;--amber:#fbbf24;--red:#f87171;--orange:#fb923c;
             --glow-v:rgba(124,58,237,0.3);--glow-c:rgba(6,182,212,0.15);
-            --r:12px;
+            --topbar-bg:rgba(10,10,26,0.9);
+            --editor-bg:transparent;--editor-color:var(--neon-cyan);
+            --panel-active-bg:rgba(15,15,35,0.6);
+            --modal-bg:rgba(0,0,0,0.85);
+            --code-bg:rgba(0,0,0,0.3);
+            --completion-bg:rgba(10,10,26,0.95);
         }
+
+        [data-theme="light"] {
+            --bg:#f0f2f5;--bg2:#ffffff;--glass:rgba(0,0,0,0.03);--glass-b:rgba(0,0,0,0.1);
+            --text:#1a1a2e;--dim:rgba(26,26,46,0.55);
+            --blue:#2563eb;--violet:#6d28d9;--cyan:#0891b2;
+            --neon-blue:#3b82f6;--neon-violet:#7c3aed;--neon-cyan:#06b6d4;
+            --green:#059669;--amber:#d97706;--red:#dc2626;--orange:#ea580c;
+            --glow-v:rgba(109,40,217,0.15);--glow-c:rgba(8,145,178,0.1);
+            --topbar-bg:rgba(240,242,245,0.92);
+            --editor-bg:#f8f9fa;--editor-color:#0e7490;
+            --panel-active-bg:rgba(240,242,245,0.8);
+            --modal-bg:rgba(255,255,255,0.9);
+            --code-bg:rgba(0,0,0,0.04);
+            --completion-bg:rgba(240,242,245,0.97);
+        }
+
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background .3s,color .3s}
 
         /* ── TOP BAR ── */
         .top-bar{position:sticky;top:0;z-index:100;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;
-            background:rgba(10,10,26,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b);gap:10px;flex-wrap:wrap}
+            background:var(--topbar-bg);backdrop-filter:blur(20px);border-bottom:1px solid var(--glass-b);gap:10px;flex-wrap:wrap;transition:background .3s}
         .logo{font-weight:800;font-size:16px;display:flex;align-items:center;gap:8px}
         .logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
         .mode-badge{padding:3px 10px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1px}
         .mode-badge.debug{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.25)}
-        .mode-badge.coding{background:rgba(52,211,153,0.12);color:var(--green);border:1px solid rgba(52,211,153,0.25)}
+        .mode-badge.logical{background:rgba(59,130,246,0.12);color:var(--neon-blue);border:1px solid rgba(59,130,246,0.25)}
         .tb-center{display:flex;align-items:center;gap:16px}
         .timer{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--neon-cyan);letter-spacing:1px}
         .timer.warn{color:var(--amber);animation:pulse 1s infinite}.timer.crit{color:var(--red);animation:pulse .5s infinite}
@@ -44,14 +68,20 @@
         .btn-skip{background:rgba(251,191,36,0.08);color:var(--amber);border:1px solid rgba(251,191,36,0.2)}.btn-skip:hover{background:rgba(251,191,36,0.15)}
         .btn-green{background:rgba(52,211,153,0.12);color:var(--green);border:1px solid rgba(52,211,153,0.2)}.btn-green:hover{background:rgba(52,211,153,0.2)}
 
+        /* ── THEME TOGGLE ── */
+        .theme-toggle{position:relative;width:44px;height:24px;border-radius:100px;border:1px solid var(--glass-b);background:var(--glass);cursor:pointer;transition:all .3s;display:flex;align-items:center;padding:0 3px}
+        .theme-toggle .toggle-thumb{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--blue));transition:transform .3s ease,background .3s;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        .theme-toggle:hover{border-color:var(--neon-violet)}
+        [data-theme="light"] .theme-toggle .toggle-thumb{transform:translateX(20px);background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+
         /* ── PROGRESS BAR ── */
         .prog-bar{width:100%;height:3px;background:rgba(255,255,255,0.06);overflow:hidden}
         .prog-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--blue),var(--cyan));transition:width .4s ease}
 
         /* ── SETUP MODALS ── */
-        .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.85);backdrop-filter:blur(12px);z-index:999;display:flex;align-items:center;justify-content:center}
+        .modal-overlay{position:fixed;inset:0;background:var(--modal-bg);backdrop-filter:blur(12px);z-index:999;display:flex;align-items:center;justify-content:center;transition:background .3s}
         .modal-overlay.hidden{display:none}
-        .modal-card{max-width:520px;width:90%;padding:36px;background:var(--bg2);border:1px solid var(--glass-b);border-radius:var(--r);text-align:center}
+        .modal-card{max-width:520px;width:90%;padding:36px;background:var(--bg2);border:1px solid var(--glass-b);border-radius:var(--r);text-align:center;transition:background .3s}
         .modal-card h2{font-size:24px;font-weight:900;margin-bottom:8px}
         .modal-card p{font-size:13px;color:var(--dim);margin-bottom:24px;line-height:1.6}
         .mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
@@ -69,7 +99,7 @@
 
         /* LEFT PANEL – PROBLEM */
         .left-panel{display:flex;flex-direction:column;border-right:1px solid var(--glass-b);overflow-y:auto}
-        .panel-tabs{display:flex;border-bottom:1px solid var(--glass-b);background:rgba(15,15,35,0.6)}
+        .panel-tabs{display:flex;border-bottom:1px solid var(--glass-b);background:var(--panel-active-bg);transition:background .3s}
         .panel-tab{padding:10px 20px;font-size:12px;font-weight:700;color:var(--dim);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;text-transform:uppercase;letter-spacing:.5px}
         .panel-tab.active{color:var(--neon-violet);border-bottom-color:var(--neon-violet)}
         .panel-tab:hover:not(.active){color:var(--text)}
@@ -85,7 +115,7 @@
         .q-desc{font-size:14px;color:var(--dim);line-height:1.7;margin-bottom:16px}
 
         /* Examples block */
-        .example-block{background:rgba(0,0,0,0.3);border:1px solid var(--glass-b);border-radius:8px;padding:14px;margin-bottom:12px}
+        .example-block{background:var(--code-bg);border:1px solid var(--glass-b);border-radius:8px;padding:14px;margin-bottom:12px;transition:background .3s}
         .example-block h4{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--neon-cyan);margin-bottom:8px}
         .example-block pre{font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--text);white-space:pre-wrap;margin:0}
         .constraints{font-size:12px;color:var(--dim);line-height:1.7}
@@ -110,13 +140,19 @@
         .fb-solution h5{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--green);margin-bottom:6px}
         .fb-solution pre{font-family:var(--mono);font-size:11px;color:var(--green);white-space:pre-wrap;margin:0;line-height:1.6}
 
-        /* RIGHT PANEL – CODE EDITOR */
-        .right-panel{display:flex;flex-direction:column;background:var(--bg2)}
-        .editor-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--glass-b);background:rgba(15,15,35,0.6)}
+        /* RIGHT PANEL – CODE EDITOR / ANSWER */
+        .right-panel{display:flex;flex-direction:column;background:var(--bg2);transition:background .3s}
+        .editor-bar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--glass-b);background:var(--panel-active-bg);transition:background .3s}
         .editor-title{font-size:12px;font-weight:700;color:var(--dim);display:flex;align-items:center;gap:6px}
         .editor-actions-bar{display:flex;gap:6px}
-        .code-editor{flex:1;width:100%;padding:16px;font-family:var(--mono);font-size:13px;line-height:1.75;background:transparent;color:var(--neon-cyan);border:none;outline:none;resize:none;tab-size:4;-moz-tab-size:4}
+        .code-editor{flex:1;width:100%;padding:16px;font-family:var(--mono);font-size:13px;line-height:1.75;background:var(--editor-bg);color:var(--editor-color);border:none;outline:none;resize:none;tab-size:4;-moz-tab-size:4;transition:background .3s,color .3s}
         .code-editor::placeholder{color:rgba(255,255,255,0.12)}
+        [data-theme="light"] .code-editor::placeholder{color:rgba(0,0,0,0.2)}
+
+        /* Logical question answer textarea */
+        .answer-editor{flex:1;width:100%;padding:16px;font-family:var(--font);font-size:14px;line-height:1.75;background:var(--editor-bg);color:var(--text);border:none;outline:none;resize:none;transition:background .3s,color .3s}
+        .answer-editor::placeholder{color:rgba(255,255,255,0.12)}
+        [data-theme="light"] .answer-editor::placeholder{color:rgba(0,0,0,0.2)}
 
         /* Analyzing animation */
         .analyzing{display:none;padding:12px;text-align:center;border-top:1px solid var(--glass-b)}
@@ -127,13 +163,17 @@
         .analyzing-dots span:nth-child(3){animation-delay:.4s}
 
         /* Bottom action bar */
-        .action-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--glass-b);background:rgba(15,15,35,0.6);gap:8px;flex-wrap:wrap}
+        .action-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--glass-b);background:var(--panel-active-bg);gap:8px;flex-wrap:wrap;transition:background .3s}
         .test-info{font-size:11px;color:var(--dim)}
 
+        /* ── AUTO-SUBMIT TOAST ── */
+        .auto-submit-toast{display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:1000;padding:24px 40px;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;border-radius:var(--r);font-size:16px;font-weight:700;text-align:center;box-shadow:0 8px 40px rgba(124,58,237,0.4);animation:toastIn .4s ease}
+        .auto-submit-toast.vis{display:block}
+
         /* ── COMPLETION OVERLAY ── */
-        .completion-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(10,10,26,0.95);backdrop-filter:blur(20px);align-items:center;justify-content:center}
+        .completion-overlay{display:none;position:fixed;inset:0;z-index:999;background:var(--completion-bg);backdrop-filter:blur(20px);align-items:center;justify-content:center;transition:background .3s}
         .completion-overlay.vis{display:flex}
-        .completion-card{max-width:580px;width:90%;padding:40px;text-align:center;background:var(--bg2);border:1px solid var(--glass-b);border-radius:var(--r)}
+        .completion-card{max-width:580px;width:90%;padding:40px;text-align:center;background:var(--bg2);border:1px solid var(--glass-b);border-radius:var(--r);transition:background .3s}
         .completion-card h2{font-size:28px;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
         .completion-card .subtitle{font-size:13px;color:var(--dim);margin-bottom:20px}
         .stat-row{display:flex;justify-content:center;gap:24px;margin:20px 0}
@@ -144,6 +184,7 @@
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
         @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes dotPulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.3);opacity:1}}
+        @keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.8)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
         @media(max-width:900px){.main{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.mode-grid{grid-template-columns:1fr}}
     </style>
 </head>
@@ -152,7 +193,7 @@
 <!-- ═══ SETUP MODAL ═══ -->
 <div id="setupModal" class="modal-overlay">
     <div class="modal-card">
-        <h2>⚡ Coding Interview</h2>
+        <h2>⚡ Advanced Interview</h2>
         <p>Choose your interview mode and preferred programming language.</p>
 
         <div class="mode-grid">
@@ -161,10 +202,10 @@
                 <h3>Debugging Round</h3>
                 <p>Find and fix bugs in given code snippets</p>
             </div>
-            <div class="mode-card" id="modeCoding" onclick="selectMode('coding')">
-                <div class="icon">💻</div>
-                <h3>Coding Round</h3>
-                <p>Solve DSA problems from scratch</p>
+            <div class="mode-card" id="modeLogical" onclick="selectMode('logical')">
+                <div class="icon">🧠</div>
+                <h3>Logical Questions</h3>
+                <p>Solve reasoning & logic-based puzzles</p>
             </div>
         </div>
 
@@ -188,11 +229,17 @@
         <div id="progText" class="progress-txt">—</div>
     </div>
     <div class="tb-right">
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
+            <div class="toggle-thumb" id="toggleThumb">🌙</div>
+        </div>
         <a href="/select/" class="btn btn-g">← Back</a>
         <button id="endBtn" class="btn btn-end" disabled onclick="endInterview()">⏹ End</button>
     </div>
 </div>
 <div class="prog-bar"><div id="progFill" class="prog-fill" style="width:0%"></div></div>
+
+<!-- ═══ AUTO-SUBMIT TOAST ═══ -->
+<div id="autoSubmitToast" class="auto-submit-toast">⏰ Time's up! Auto-submitting your answers...</div>
 
 <!-- ═══ MAIN SPLIT ═══ -->
 <div class="main">
@@ -211,7 +258,7 @@
         <div class="feedback-panel" id="feedbackPanel"></div>
     </div>
 
-    <!-- RIGHT: CODE EDITOR -->
+    <!-- RIGHT: EDITOR / ANSWER -->
     <div class="right-panel">
         <div class="editor-bar">
             <div class="editor-title">
@@ -223,9 +270,10 @@
             </div>
         </div>
         <textarea id="codeEditor" class="code-editor" placeholder="Your code will appear here after starting..." disabled spellcheck="false"></textarea>
+        <textarea id="answerEditor" class="answer-editor" placeholder="Type your answer here..." disabled spellcheck="false" style="display:none"></textarea>
         <div id="analyzeBar" class="analyzing">
             <div class="analyzing-dots"><span></span><span></span><span></span></div>
-            <span style="font-size:12px;font-weight:600;color:var(--dim)">AI is analyzing your code...</span>
+            <span style="font-size:12px;font-weight:600;color:var(--dim)">AI is analyzing your response...</span>
         </div>
         <div class="action-bar">
             <div class="test-info" id="testInfo">—</div>
@@ -241,7 +289,7 @@
 <div id="completionOverlay" class="completion-overlay">
     <div class="completion-card">
         <h2>🎉 Interview Complete!</h2>
-        <p class="subtitle">Your coding interview has been evaluated by AI.</p>
+        <p class="subtitle">Your advanced interview has been evaluated by AI.</p>
         <div class="stat-row">
             <div class="stat"><div id="compScore" class="val">—</div><div class="lbl">Score</div></div>
             <div class="stat"><div id="compAnswered" class="val">—</div><div class="lbl">Solved</div></div>
@@ -256,16 +304,38 @@ const STORAGE_KEY = "mock_adv_interviews_v1";
 let selectedMode = "debug", selectedLang = "python";
 let timerInterval = null, remaining = 1800, started = false;
 let originalCode = "";  // for reset
+let autoSubmitting = false; // flag for auto-submit
 
 function getCk(n){const v=`; ${document.cookie}`;const p=v.split(`; ${n}=`);if(p.length===2)return p.pop().split(";").shift();return""}
 function pad(n){return String(n).padStart(2,"0")}
 function fmtTime(s){return `${pad(Math.floor(s/60))}:${pad(Math.floor(s%60))}`}
 
+// ── THEME TOGGLE ──
+function toggleTheme(){
+    const html = document.documentElement;
+    const current = html.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    document.getElementById("toggleThumb").textContent = next === "dark" ? "🌙" : "☀️";
+    try { localStorage.setItem("mock_theme", next); } catch(e){}
+}
+
+// Load saved theme
+(function(){
+    try {
+        const saved = localStorage.getItem("mock_theme");
+        if(saved === "light"){
+            document.documentElement.setAttribute("data-theme", "light");
+            document.getElementById("toggleThumb").textContent = "☀️";
+        }
+    } catch(e){}
+})();
+
 // ── SETUP ──
 function selectMode(m){
     selectedMode = m;
     document.getElementById("modeDebug").classList.toggle("selected", m==="debug");
-    document.getElementById("modeCoding").classList.toggle("selected", m==="coding");
+    document.getElementById("modeLogical").classList.toggle("selected", m==="logical");
 }
 
 function selectLang(el, lang){
@@ -280,7 +350,66 @@ function updateTimer(){
     document.getElementById("timer").textContent = fmtTime(remaining);
     const el = document.getElementById("timer");
     el.className = "timer" + (remaining<=60?" crit":remaining<=300?" warn":"");
-    if(remaining <= 0){clearInterval(timerInterval); endInterview();}
+    if(remaining <= 0){
+        clearInterval(timerInterval);
+        autoSubmitInterview();
+    }
+}
+
+// ── AUTO-SUBMIT on time expiry ──
+async function autoSubmitInterview(){
+    if(autoSubmitting) return;
+    autoSubmitting = true;
+
+    // Show toast
+    document.getElementById("autoSubmitToast").classList.add("vis");
+
+    // Disable controls
+    document.getElementById("submitBtn").disabled = true;
+    document.getElementById("skipBtn").disabled = true;
+    document.getElementById("codeEditor").disabled = true;
+    document.getElementById("answerEditor").disabled = true;
+
+    // Try to submit current code/answer first
+    const code = getCurrentAnswer();
+    if(code.trim()){
+        try {
+            const r = await fetch("/api/adv/answer/", {
+                method: "POST",
+                headers: {"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},
+                body: JSON.stringify({code: code})
+            });
+            await r.json();
+        } catch(e){}
+    }
+
+    // Now end the interview
+    try {
+        const r = await fetch("/api/adv/end/", {
+            method: "POST",
+            headers: {"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")}
+        });
+        const d = await r.json();
+        started = false;
+
+        // Hide toast
+        setTimeout(() => {
+            document.getElementById("autoSubmitToast").classList.remove("vis");
+            if(d.report){ saveReport(d.report); showCompletion(d.report); }
+            else { showCompletion({overall_score:0,metrics:{}}); }
+        }, 1500);
+    } catch(e){
+        document.getElementById("autoSubmitToast").classList.remove("vis");
+        showCompletion({overall_score:0,metrics:{}});
+    }
+}
+
+function getCurrentAnswer(){
+    if(selectedMode === "debug"){
+        return document.getElementById("codeEditor").value;
+    } else {
+        return document.getElementById("answerEditor").value;
+    }
 }
 
 // ── RENDER QUESTION ──
@@ -304,7 +433,9 @@ function renderQuestion(q){
                 </div>
             ` : ''}
         `;
-        // Load buggy code into editor
+        // Show code editor, hide answer editor
+        document.getElementById("codeEditor").style.display = "";
+        document.getElementById("answerEditor").style.display = "none";
         const code = q.buggy_code || "";
         document.getElementById("codeEditor").value = code;
         originalCode = code;
@@ -312,42 +443,30 @@ function renderQuestion(q){
         document.getElementById("editorIcon").textContent = "🐛";
         document.getElementById("testInfo").textContent = "Find and fix the bug, then submit";
     } else {
-        let examplesHtml = "";
-        if(q.examples && q.examples.length){
-            examplesHtml = q.examples.map((ex,i) => `
-                <div class="example-block">
-                    <h4>Example ${i+1}</h4>
-                    <pre><strong>Input:</strong> ${ex.input||''}\n<strong>Output:</strong> ${ex.output||''}\n<strong>Explanation:</strong> ${ex.explanation||''}</pre>
-                </div>
-            `).join("");
-        }
-        let constraintsHtml = "";
-        if(q.constraints && q.constraints.length){
-            constraintsHtml = `<div class="constraints"><strong>Constraints:</strong><ul>${q.constraints.map(c=>'<li>'+c+'</li>').join('')}</ul></div>`;
-        }
-        let complexityHtml = "";
-        if(q.time_complexity){
-            complexityHtml = `<div style="margin-top:10px;font-size:12px;color:var(--dim)"><strong>Expected:</strong> Time ${q.time_complexity}, Space ${q.space_complexity||'—'}</div>`;
-        }
-
+        // Logical question mode
         pc.innerHTML = `
             <div class="q-badge-row">
                 <span class="badge badge-topic">${q.topic||''}</span>
                 <span class="badge badge-diff ${diffCls}">${diffCls}</span>
-                <span class="badge" style="background:rgba(52,211,153,0.08);color:var(--green);border-color:rgba(52,211,153,0.2)">💻 CODING</span>
+                <span class="badge" style="background:rgba(59,130,246,0.08);color:var(--neon-blue);border-color:rgba(59,130,246,0.2)">🧠 LOGICAL</span>
             </div>
-            <div class="q-title">${q.title||'Coding Challenge'}</div>
+            <div class="q-title">${q.title||'Logical Challenge'}</div>
             <div class="q-desc">${q.description||''}</div>
-            ${examplesHtml}
-            ${constraintsHtml}
-            ${complexityHtml}
+            ${q.hints && q.hints.length ? `
+                <div class="hints-panel">
+                    <button class="hint-toggle" onclick="this.nextElementSibling.classList.toggle('vis')">💡 Show Hints</button>
+                    <div class="hint-list">${q.hints.map(h=>'• '+h).join('<br>')}</div>
+                </div>
+            ` : ''}
         `;
-        const code = q.starter_code || "";
-        document.getElementById("codeEditor").value = code;
-        originalCode = code;
-        document.getElementById("editorLabel").textContent = "Write Solution";
-        document.getElementById("editorIcon").textContent = "💻";
-        document.getElementById("testInfo").textContent = "Write your solution, then submit";
+        // Show answer editor, hide code editor
+        document.getElementById("codeEditor").style.display = "none";
+        document.getElementById("answerEditor").style.display = "";
+        document.getElementById("answerEditor").value = "";
+        originalCode = "";
+        document.getElementById("editorLabel").textContent = "Write Your Answer";
+        document.getElementById("editorIcon").textContent = "🧠";
+        document.getElementById("testInfo").textContent = "Explain your reasoning, then submit";
     }
 
     // Clear feedback
@@ -356,8 +475,9 @@ function renderQuestion(q){
     // Activate problem tab
     document.getElementById("tabProblem").classList.add("active");
     document.getElementById("tabFeedback").classList.remove("active");
-    // Enable editor
+    // Enable editors
     document.getElementById("codeEditor").disabled = false;
+    document.getElementById("answerEditor").disabled = false;
     document.getElementById("submitBtn").disabled = false;
     document.getElementById("skipBtn").disabled = false;
 }
@@ -373,11 +493,6 @@ function renderFeedback(ev){
         bugsHtml = `<div class="fb-bugs"><strong>🐛 Bugs Found:</strong><br>${ev.bugs_found.map(b=>'• '+b).join('<br>')}</div>`;
     }
 
-    let testHtml = "";
-    if(ev.total_tests > 0){
-        testHtml = `<div style="margin-top:8px;font-size:12px;color:var(--dim)">Tests: <strong>${ev.passed_tests||0}/${ev.total_tests}</strong> passed</div>`;
-    }
-
     let solutionHtml = "";
     if(ev.fixed_code){
         solutionHtml = `<div class="fb-solution"><h5>✅ Correct Fix</h5><pre>${ev.fixed_code}</pre></div>`;
@@ -386,6 +501,9 @@ function renderFeedback(ev){
     }
     if(ev.bug_explanation){
         solutionHtml += `<div class="fb-solution" style="margin-top:6px"><h5>📝 Bug Explanation</h5><pre style="color:var(--amber)">${ev.bug_explanation}</pre></div>`;
+    }
+    if(ev.correct_answer){
+        solutionHtml += `<div class="fb-solution" style="margin-top:6px"><h5>✅ Correct Answer</h5><pre style="color:var(--green)">${ev.correct_answer}</pre></div>`;
     }
 
     fp.innerHTML = `
@@ -398,7 +516,6 @@ function renderFeedback(ev){
             ${ev.improvement ? `<p><strong>△ Improve:</strong> ${ev.improvement}</p>` : ''}
             ${ev.complexity_analysis ? `<p><strong>📊 Complexity:</strong> ${ev.complexity_analysis}</p>` : ''}
         </div>
-        ${testHtml}
         ${bugsHtml}
         ${solutionHtml}
     `;
@@ -408,7 +525,11 @@ function renderFeedback(ev){
 }
 
 function resetEditor(){
-    document.getElementById("codeEditor").value = originalCode;
+    if(selectedMode === "debug"){
+        document.getElementById("codeEditor").value = originalCode;
+    } else {
+        document.getElementById("answerEditor").value = "";
+    }
 }
 
 // ── API CALLS ──
@@ -438,19 +559,20 @@ async function startInterview(){
 }
 
 async function submitCode(){
-    const code = document.getElementById("codeEditor").value.trim();
-    if(!code){alert("Please write your code before submitting.");return;}
+    const answer = getCurrentAnswer().trim();
+    if(!answer){alert("Please write your response before submitting.");return;}
 
     document.getElementById("submitBtn").disabled = true;
     document.getElementById("skipBtn").disabled = true;
     document.getElementById("codeEditor").disabled = true;
+    document.getElementById("answerEditor").disabled = true;
     document.getElementById("analyzeBar").classList.add("vis");
 
     try {
         const r = await fetch("/api/adv/answer/", {
             method: "POST",
             headers: {"Content-Type":"application/json","X-CSRFToken":getCk("csrftoken")},
-            body: JSON.stringify({code: code})
+            body: JSON.stringify({code: answer})
         });
         const d = await r.json();
         document.getElementById("analyzeBar").classList.remove("vis");
@@ -484,6 +606,7 @@ async function submitCode(){
         document.getElementById("submitBtn").disabled = false;
         document.getElementById("skipBtn").disabled = false;
         document.getElementById("codeEditor").disabled = false;
+        document.getElementById("answerEditor").disabled = false;
     }
 }
 
