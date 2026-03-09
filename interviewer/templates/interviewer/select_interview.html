@@ -15,14 +15,26 @@
             --blue:#3b82f6;--violet:#7c3aed;--neon-blue:#60a5fa;--neon-violet:#a78bfa;
             --glow-v:rgba(124,58,237,0.3);--r:16px;
         }
+        [data-theme="light"] {
+            --bg:#f0f2f5;--glass:rgba(0,0,0,0.03);--glass-b:rgba(0,0,0,0.1);
+            --text:#1a1a2e;--dim:rgba(26,26,46,0.6);
+            --blue:#2563eb;--violet:#6d28d9;--neon-blue:#3b82f6;--neon-violet:#7c3aed;
+        }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;transition:background-color .3s,color .3s}
         #bg{position:fixed;inset:0;z-index:0;pointer-events:none}
         .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);backdrop-filter:blur(20px)}
-        nav{position:sticky;top:0;z-index:100;padding:14px 24px;border-bottom:1px solid var(--glass-b)}
+        nav{position:sticky;top:0;z-index:100;padding:14px 24px;border-bottom:1px solid var(--glass-b);display:flex;justify-content:center;align-items:center}
+        .nav-c{max-width:900px;width:100%;display:flex;justify-content:space-between;align-items:center}
         .logo{font-weight:800;font-size:20px;text-align:center;display:block;text-decoration:none}
         .logo .m{color:var(--text)}.logo .a{color:var(--neon-violet)}
         
+        /* ── THEME TOGGLE ── */
+        .theme-toggle{position:relative;width:44px;height:24px;border-radius:100px;border:1px solid var(--glass-b);background:var(--glass);cursor:pointer;transition:all .3s;display:flex;align-items:center;padding:0 3px}
+        .theme-toggle .toggle-thumb{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--blue));transition:transform .3s ease,background .3s;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        .theme-toggle:hover{border-color:var(--neon-violet)}
+        [data-theme="light"] .theme-toggle .toggle-thumb{transform:translateX(20px);background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+
         .main{position:relative;z-index:1;max-width:900px;margin:100px auto 40px;padding:0 24px;width:100%;flex:1}
         .main-head{text-align:center;margin-bottom:60px;animation:fadeUp .5s ease}
         .main-head h1{font-size:clamp(32px,5vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:12px}
@@ -48,7 +60,15 @@
 </head>
 <body>
 <canvas id="bg"></canvas>
-<nav><a href="/" class="logo"><span class="m">Mock</span><span class="a">Interviewer</span></a></nav>
+<nav class="glass" style="border-radius:0;border-left:none;border-right:none;border-top:none">
+    <div class="nav-c">
+        <div style="width:44px"></div> <!-- spacer -->
+        <a href="/" class="logo"><span class="m">Mock</span><span class="a">Interviewer</span></a>
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Theme">
+            <div class="toggle-thumb" id="toggleThumb">🌙</div>
+        </div>
+    </div>
+</nav>
 
 <div class="main">
     <div class="main-head">
@@ -82,7 +102,30 @@ function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(
 ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.15)";ctx.fill()});
 for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){const dx=nodes[i].x-nodes[j].x,dy=nodes[i].y-nodes[j].y,d=Math.sqrt(dx*dx+dy*dy);
 if(d<150){ctx.beginPath();ctx.moveTo(nodes[i].x,nodes[i].y);ctx.lineTo(nodes[j].x,nodes[j].y);ctx.strokeStyle=`rgba(96,165,250,${.05*(1-d/150)})`;ctx.lineWidth=.4;ctx.stroke()}}
-requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+requestAnimationFrame(draw)    }
+    window.addEventListener('resize',resize);resize();draw();
+})();
+
+// ── THEME TOGGLE ──
+function toggleTheme(){
+    const html = document.documentElement;
+    const current = html.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    document.getElementById("toggleThumb").textContent = next === "dark" ? "🌙" : "☀️";
+    try { localStorage.setItem("mock_theme", next); } catch(e){}
+}
+// Load saved theme
+(function(){
+    try {
+        const saved = localStorage.getItem("mock_theme");
+        if(saved === "light"){
+            document.documentElement.setAttribute("data-theme", "light");
+            const t = document.getElementById("toggleThumb");
+            if(t) t.textContent = "☀️";
+        }
+    } catch(e){}
+})();
 </script>
 </body>
 </html>

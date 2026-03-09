@@ -20,9 +20,17 @@
             --glow-blue:rgba(59,130,246,0.3);--glow-violet:rgba(124,58,237,0.3);
             --r:16px;--rs:10px;
         }
+        [data-theme="light"] {
+            --bg:#f0f2f5;--surface:rgba(0,0,0,0.03);
+            --glass:rgba(0,0,0,0.03);--glass-b:rgba(0,0,0,0.1);
+            --text:#1a1a2e;--dim:rgba(26,26,46,0.6);
+            --blue:#2563eb;--violet:#6d28d9;--cyan:#0891b2;
+            --neon-blue:#3b82f6;--neon-violet:#7c3aed;--neon-cyan:#06b6d4;
+            --glow-blue:rgba(59,130,246,0.15);--glow-violet:rgba(124,58,237,0.15);
+        }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;transition:background-color .3s,color .3s}
 
         /* NEURAL CANVAS */
         #neuralCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
@@ -43,6 +51,12 @@
         .nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.05)}
         .nav-links a.cta{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-weight:600}
         .nav-links a.cta:hover{opacity:.9}
+
+        /* ── THEME TOGGLE ── */
+        .theme-toggle{position:relative;width:44px;height:24px;border-radius:100px;border:1px solid var(--glass-b);background:var(--glass);cursor:pointer;transition:all .3s;display:flex;align-items:center;padding:0 3px}
+        .theme-toggle .toggle-thumb{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--blue));transition:transform .3s ease,background .3s;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        .theme-toggle:hover{border-color:var(--neon-violet)}
+        [data-theme="light"] .theme-toggle .toggle-thumb{transform:translateX(20px);background:linear-gradient(135deg,#fbbf24,#f59e0b)}
 
         /* CONTAINER */
         .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 24px}
@@ -193,6 +207,9 @@
         <a href="#features-section">Features</a>
         <a href="/select/">Interviews</a>
         <a href="/select/" class="cta" id="navCta">Start Interview</a>
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Theme" style="margin-left:8px">
+            <div class="toggle-thumb" id="toggleThumb">🌙</div>
+        </div>
     </div>
 </div></nav>
 
@@ -300,6 +317,32 @@
     document.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY});
     resize();draw();
 })();
+
+/* ── THEME TOGGLE ── */
+function toggleTheme(){
+    const html = document.documentElement;
+    const current = html.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    document.getElementById("toggleThumb").textContent = next === "dark" ? "🌙" : "☀️";
+    try { localStorage.setItem("mock_theme", next); } catch(e){}
+    updateCanvasColors();
+}
+// Load saved theme
+(function(){
+    try {
+        const saved = localStorage.getItem("mock_theme");
+        if(saved === "light"){
+            document.documentElement.setAttribute("data-theme", "light");
+            const t = document.getElementById("toggleThumb");
+            if(t) t.textContent = "☀️";
+        }
+    } catch(e){}
+})();
+function updateCanvasColors() {
+    // If the theme changed, could trigger a redraw of canvas with new theme colors if needed.
+    // Right now it just relies on constant colors, but we should clear the background cleanly.
+}
 
 /* ═══ SCROLL ANIMATIONS ═══ */
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')})},{threshold:.15});

@@ -12,8 +12,13 @@
             --text:#e8ecf4;--dim:rgba(232,236,244,0.5);--blue:#3b82f6;--violet:#7c3aed;--cyan:#06b6d4;
             --neon-blue:#60a5fa;--neon-violet:#a78bfa;--neon-cyan:#22d3ee;--green:#34d399;--amber:#fbbf24;--red:#f87171;
             --glow-v:rgba(124,58,237,0.3);--r:16px;--rs:10px}
+        [data-theme="light"] {
+            --bg:#f0f2f5;--glass:rgba(0,0,0,0.03);--glass-b:rgba(0,0,0,0.1);
+            --text:#1a1a2e;--dim:rgba(26,26,46,0.6);
+            --neon-blue:#3b82f6;--neon-violet:#7c3aed;--neon-cyan:#06b6d4;--glow-v:rgba(109,40,217,0.15);
+        }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+        body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;transition:background-color .3s,color .3s}
         #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
 
         .glass{background:var(--glass);border:1px solid var(--glass-b);border-radius:var(--r);
@@ -28,6 +33,12 @@
         .nav-links a:hover{color:var(--text);background:rgba(255,255,255,0.05)}
         .nav-links a.active{background:rgba(124,58,237,0.15);color:var(--neon-violet)}
         .nav-links a.cta{background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;font-weight:600}
+
+        /* ── THEME TOGGLE ── */
+        .theme-toggle{position:relative;width:44px;height:24px;border-radius:100px;border:1px solid var(--glass-b);background:var(--glass);cursor:pointer;transition:all .3s;display:flex;align-items:center;padding:0 3px}
+        .theme-toggle .toggle-thumb{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,var(--violet),var(--blue));transition:transform .3s ease,background .3s;display:flex;align-items:center;justify-content:center;font-size:10px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+        .theme-toggle:hover{border-color:var(--neon-violet)}
+        [data-theme="light"] .theme-toggle .toggle-thumb{transform:translateX(20px);background:linear-gradient(135deg,#fbbf24,#f59e0b)}
 
         .wrap{position:relative;z-index:1;max-width:1200px;margin:0 auto;padding:0 24px}
         .page-head{padding:40px 0 24px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px}
@@ -114,6 +125,9 @@
         <a href="/select/">Interviews</a>
         <a href="/dashboard/" class="active">Dashboard</a>
         <a href="/select/" class="cta">New Interview</a>
+        <div class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle Dark/Light Theme" style="margin-left:8px">
+            <div class="toggle-thumb" id="toggleThumb">🌙</div>
+        </div>
     </div>
 </div></nav>
 
@@ -382,6 +396,27 @@ updateView();
 (function(){const c=document.getElementById("bgCanvas"),ctx=c.getContext("2d");let w,h,nodes=[];
 function resize(){w=c.width=innerWidth;h=c.height=innerHeight;nodes=[];const cnt=Math.min(40,Math.floor(w*h/20000));for(let i=0;i<cnt;i++)nodes.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.2,vy:(Math.random()-.5)*.2,r:Math.random()+.4})}
 function draw(){ctx.clearRect(0,0,w,h);nodes.forEach(n=>{n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>w)n.vx*=-1;if(n.y<0||n.y>h)n.vy*=-1;ctx.beginPath();ctx.arc(n.x,n.y,n.r,0,Math.PI*2);ctx.fillStyle="rgba(124,58,237,0.2)";ctx.fill()});requestAnimationFrame(draw)}addEventListener("resize",resize);resize();draw()})();
+
+// ── THEME TOGGLE ──
+function toggleTheme(){
+    const html = document.documentElement;
+    const current = html.getAttribute("data-theme") || "dark";
+    const next = current === "dark" ? "light" : "dark";
+    html.setAttribute("data-theme", next);
+    document.getElementById("toggleThumb").textContent = next === "dark" ? "🌙" : "☀️";
+    try { localStorage.setItem("mock_theme", next); } catch(e){}
+}
+// Load saved theme
+(function(){
+    try {
+        const saved = localStorage.getItem("mock_theme");
+        if(saved === "light"){
+            document.documentElement.setAttribute("data-theme", "light");
+            const t = document.getElementById("toggleThumb");
+            if(t) t.textContent = "☀️";
+        }
+    } catch(e){}
+})();
 </script>
 </body>
 </html>
