@@ -91,6 +91,17 @@
 
         footer{position:relative;z-index:1;text-align:center;padding:36px 24px;border-top:1px solid var(--glass-b)}
         footer p{font-size:13px;color:var(--dim)}footer a{color:var(--neon-violet);text-decoration:none}
+        
+        @media(max-width:900px){
+            .kpi-row{grid-template-columns:repeat(2,1fr)}
+            .chart-grid{grid-template-columns:1fr}
+        }
+        @media(max-width:600px){
+            .kpi-row{grid-template-columns:1fr}
+            .page-head{flex-direction:column;align-items:flex-start}
+            .qbq-card{grid-template-columns:40px 1fr}
+            .qbq-score{display:none} /* hide score block on small screens or adjust */
+        }
     </style>
 </head>
 <body>

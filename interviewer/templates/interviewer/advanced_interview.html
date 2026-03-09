@@ -174,7 +174,7 @@
         .completion-overlay{display:none;position:fixed;inset:0;z-index:999;background:var(--completion-bg);backdrop-filter:blur(20px);align-items:center;justify-content:center;transition:background .3s}
         .completion-overlay.vis{display:flex}
         .completion-card{max-width:580px;width:90%;padding:40px;text-align:center;background:var(--bg2);border:1px solid var(--glass-b);border-radius:var(--r);transition:background .3s}
-        .completion-card h2{font-size:28px;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .completion-card h2{font-size:28px;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
         .completion-card .subtitle{font-size:13px;color:var(--dim);margin-bottom:20px}
         .stat-row{display:flex;justify-content:center;gap:24px;margin:20px 0}
         .stat{text-align:center}.stat .val{font-size:30px;font-weight:900;color:var(--neon-violet)}.stat .lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
@@ -185,7 +185,14 @@
         @keyframes slideIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
         @keyframes dotPulse{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.3);opacity:1}}
         @keyframes toastIn{from{opacity:0;transform:translate(-50%,-50%) scale(0.8)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-        @media(max-width:900px){.main{grid-template-columns:1fr;grid-template-rows:1fr 1fr}.mode-grid{grid-template-columns:1fr}}
+        @media(max-width:900px){
+            .main{display:flex;flex-direction:column;height:auto}
+            .left-panel{height:50vh;border-right:none;border-bottom:1px solid var(--glass-b)}
+            .right-panel{min-height:50vh}
+            .mode-grid{grid-template-columns:1fr}
+            .action-bar{flex-direction:column;align-items:stretch}
+            .action-bar > div{display:flex;justify-content:space-between}
+        }
     </style>
 </head>
 <body>

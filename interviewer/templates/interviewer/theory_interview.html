@@ -58,11 +58,18 @@
         @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
         @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
         @keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+        
+        @media(max-width:768px){
+            .main{margin:20px auto;padding:0 16px}
+            .console{padding:20px}
+            .con-head{flex-direction:column;align-items:flex-start;gap:12px}
+        }
 
         .completion-overlay{display:none;position:fixed;inset:0;z-index:999;background:rgba(3,0,20,0.92);backdrop-filter:blur(20px);align-items:center;justify-content:center}
         .completion-overlay.vis{display:flex}
-        .completion-card{max-width:520px;width:90%;padding:40px;text-align:center}
-        .completion-card h2{font-size:28px;font-weight:900;margin-bottom:8px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .completion-card{max-width:480px;width:90%;padding:40px;text-align:center;background:var(--bg);border:1px solid var(--glass-b);border-radius:var(--r)}
+        .completion-card h2{font-size:28px;font-weight:900;margin-bottom:6px;background:linear-gradient(135deg,var(--neon-blue),var(--neon-violet));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+        .completion-card p{font-size:14px;color:var(--dim);margin-bottom:24px}
         .completion-card .stat-row{display:flex;justify-content:center;gap:24px;margin:20px 0}
         .completion-card .stat{text-align:center}.completion-card .stat .val{font-size:32px;font-weight:900;color:var(--neon-violet)}.completion-card .stat .lbl{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:1px}
         .completion-card .btn-dash{display:inline-flex;align-items:center;gap:8px;padding:14px 32px;border-radius:12px;font-size:15px;font-weight:700;background:linear-gradient(135deg,var(--violet),var(--blue));color:#fff;border:none;cursor:pointer;box-shadow:0 4px 20px var(--glow-v);text-decoration:none;margin-top:16px;transition:transform .2s}
