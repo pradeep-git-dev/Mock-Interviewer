@@ -139,10 +139,13 @@ body { display: flex !important; flex-direction: row !important; margin: 0; min-
 .sidebar-bottom { padding: 16px; border-top: 1px solid var(--glass-b); display: flex; flex-direction: column; gap: 4px; }
 [data-theme="light"] .sidebar-bottom { border-top: 1px solid #e5e7eb; }
 
-.main-wrapper { flex: 1; height: 100vh; overflow-y: auto; overflow-x: hidden; position: relative; display: flex; flex-direction: column; scroll-behavior: smooth; }
+
+.main-wrapper { flex: 1; height: 100vh; overflow-y: auto; overflow-x: hidden; position: relative; display: flex; flex-direction: column; scroll-behavior: smooth; padding: 0 40px; scrollbar-width: none; -ms-overflow-style: none; }
+.main-wrapper::-webkit-scrollbar { display: none; }
 nav, nav * { display: none !important; }
 
 /* Switch Toggle */
+
 .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
 .switch input { opacity: 0; width: 0; height: 0; }
 .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #d1d5db; transition: .4s; border-radius: 20px; }
@@ -166,7 +169,7 @@ input:checked + .slider:before { transform: translateX(16px); }
             <path d="M10 15V19C10 20.1046 12.6863 21 16 21C19.3137 21 22 20.1046 22 19V15" stroke="white" stroke-width="2" stroke-linecap="round"/>
         </svg>
         <div class="sidebar-brand">
-            <div class="brand-title">InterviewPortal</div>
+            <div class="brand-title"><span style="color: var(--text); font-size: 22px;">mock</span><span style="color: var(--neon-violet); font-size: 22px;">Interviewer</span></div>
             <div class="brand-subtitle">Candidate Dashboard</div>
         </div>
     </div>
