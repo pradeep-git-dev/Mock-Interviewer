@@ -284,14 +284,17 @@ class AptitudeSession:
         }
 
     def to_dict(self) -> Dict:
+        mini_responses = [
+            {"score": r["score"], "skipped": r["skipped"], "answer": r["answer"]}
+            for r in self.responses
+        ]
         return {
             "mode": self.mode,
             "total_questions": self.total_questions,
             "start_time": self.start_time,
             "duration_seconds": self.duration_seconds,
             "index": self.index,
-            "questions": self.questions,
-            "responses": self.responses,
+            "responses": mini_responses,
             "finished": self.finished,
         }
 
@@ -304,7 +307,40 @@ class AptitudeSession:
         s.total_questions = data.get("total_questions", 15)
         s.start_time = data.get("start_time", time.time())
         s.index = data.get("index", 0)
-        s.questions = data.get("questions", [])
-        s.responses = data.get("responses", [])
+        s.questions = list(HARDCODED_QUESTIONS)[:s.total_questions]
         s.finished = data.get("finished", False)
+        
+        responses = []
+        for i, r in enumerate(data.get("responses", [])):
+            if i >= len(HARDCODED_QUESTIONS): break
+            q = HARDCODED_QUESTIONS[i]
+            if r.get("skipped"):
+                responses.append({
+                    "question": q["prompt"],
+                    "topic": q["topic"],
+                    "difficulty": q["difficulty"],
+                    "score": 0,
+                    "answer": "",
+                    "correct_answer": q["answer"],
+                    "feedback": "Skipped question.",
+                    "strengths": q["explanation"],
+                    "improvement": "",
+                    "skipped": True,
+                    "time_taken": 0,
+                })
+            else:
+                responses.append({
+                    "question": q["prompt"],
+                    "topic": q["topic"],
+                    "difficulty": q["difficulty"],
+                    "score": r.get("score", 0),
+                    "answer": r.get("answer", ""),
+                    "correct_answer": q["answer"],
+                    "feedback": "Correctly answered!" if r.get("score") == 10 else "Incorrect answer.",
+                    "strengths": q["explanation"],
+                    "improvement": "",
+                    "skipped": False,
+                    "time_taken": 0,
+                })
+        s.responses = responses
         return s
