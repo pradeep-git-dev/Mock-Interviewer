@@ -35,12 +35,12 @@
         .theme-toggle:hover{border-color:var(--neon-violet)}
         [data-theme="light"] .theme-toggle .toggle-thumb{transform:translateX(20px);background:linear-gradient(135deg,#fbbf24,#f59e0b)}
 
-        .main{position:relative;z-index:1;max-width:900px;margin:100px auto 40px;padding:0 24px;width:100%;flex:1}
+        .main{position:relative;z-index:1;max-width:1200px;margin:100px auto 40px;padding:0 24px;width:100%;flex:1}
         .main-head{text-align:center;margin-bottom:60px;animation:fadeUp .5s ease}
         .main-head h1{font-size:clamp(32px,5vw,48px);font-weight:900;letter-spacing:-1px;margin-bottom:12px}
         .main-head p{font-size:16px;color:var(--dim)}
 
-        .grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;animation:fadeUp .6s ease .1s both}
+        .grid{display:grid;grid-template-columns:repeat(3, 1fr);gap:24px;animation:fadeUp .6s ease .1s both; max-width: 1200px; margin: 0 auto;}
         @media(max-width:768px){.grid{grid-template-columns:1fr}}
         
         .card{padding:40px;cursor:pointer;transition:all .3s ease;text-decoration:none;color:inherit;position:relative;overflow:hidden}
@@ -190,6 +190,12 @@ input:checked + .slider:before { transform: translateX(16px); }
             <h2>Advanced Interview</h2>
             <p>A rigorous 30-minute technical session featuring tricky debugging tasks and logical reasoning puzzles.</p>
             <div class="tags"><span class="tag">Logic</span><span class="tag">Reasoning</span><span class="tag">Debugging</span></div>
+        </a>
+        <a href="/aptitude/" class="card glass c-3" style="--icon-bg:rgba(16,185,129,0.1); --icon-color:var(--green)">
+            <div class="icon" style="background:var(--icon-bg);color:var(--icon-color)">🧠</div>
+            <h2>Aptitude & Reasoning</h2>
+            <p>Practice 15 multiple choice aptitude and reasoning questions in a 30-minute timeframe to sharpen your logical skills.</p>
+            <div class="tags"><span class="tag">Aptitude</span><span class="tag">MCQs</span><span class="tag">Time-bound</span></div>
         </a>
     </div>
     <div style="text-align:center;margin-top:40px;animation:fadeUp .6s ease .2s both">

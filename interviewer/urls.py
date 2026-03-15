@@ -22,6 +22,13 @@ urlpatterns = [
     path("api/adv/skip/", views.adv_skip),
     path("api/adv/end/", views.adv_end),
 
+    # ── Aptitude Interview API ──
+    path("api/aptitude/start/", views.aptitude_start),
+    path("api/aptitude/answer/", views.aptitude_answer),
+    path("api/aptitude/skip/", views.aptitude_skip),
+    path("api/aptitude/end/", views.aptitude_end),
+    path("aptitude/", views.aptitude_interview_page, name="aptitude-interview"),
+
     # ── Legacy redirects ──
     path("signin/", views.legacy_auth_redirect),
     path("signup/", views.legacy_auth_redirect),
