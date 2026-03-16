@@ -49,9 +49,18 @@ class InterviewSession:
         return self.index >= len(self.questions)
 
     def to_dict(self) -> Dict[str, object]:
+        mini_responses = []
+        for r in self.responses:
+            mini_responses.append({
+                "qid": r.get("qid"),
+                "topic": r.get("topic"),
+                "question": r.get("question"),
+                "answer": r.get("answer"),
+                "score": r.get("score", 0),
+            })
         return {
             "index": self.index,
-            "responses": self.responses,
+            "responses": mini_responses,
             "selected_qids": self.selected_qids,
         }
 

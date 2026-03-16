@@ -317,12 +317,31 @@ class AdvancedSession:
         }
 
     def to_dict(self) -> Dict:
+        active_questions = []
+        for i, q in enumerate(self.questions):
+            if i >= self.index:
+                q_copy = dict(q)
+                q_copy.pop("test_cases", None)
+                active_questions.append(q_copy)
+
+        mini_responses = []
+        for r in self.responses:
+            mini_r = dict(r)
+            mini_r.pop("description", None)
+            mini_r.pop("complexity_analysis", None)
+            if mini_r.get("skipped", False):
+                mini_r.pop("buggy_code", None)
+                mini_r.pop("fixed_code", None)
+                mini_r.pop("bug_explanation", None)
+                mini_r.pop("correct_answer", None)
+            mini_responses.append(mini_r)
+
         return {
             "mode": self.mode,
             "lang": self.lang,
             "index": self.index,
-            "responses": self.responses,
-            "questions": self.questions,
+            "responses": mini_responses,
+            "questions": active_questions,
             "start_time": self.start_time,
             "ended": self.ended,
             "used_topics": self.used_topics,
@@ -331,12 +350,15 @@ class AdvancedSession:
 
     @classmethod
     def from_dict(cls, data: Dict) -> "AdvancedSession":
+        idx = int(data.get("index", 0))
+        active_questions = list(data.get("questions", []))
+        questions = [None] * idx + active_questions
         return cls(
             mode=str(data.get("mode", "debug")),
             lang=str(data.get("lang", "python")),
-            index=int(data.get("index", 0)),
+            index=idx,
             responses=list(data.get("responses", [])),
-            questions=list(data.get("questions", [])),
+            questions=questions,
             start_time=float(data.get("start_time", time.time())),
             ended=bool(data.get("ended", False)),
             used_topics=list(data.get("used_topics", [])),
