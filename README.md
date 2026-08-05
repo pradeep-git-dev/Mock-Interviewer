@@ -71,3 +71,4 @@ Ensure `DEBUG=false` in Vercel environment variables.
 - `mock/mock/settings.py` - DB-free Django settings
 - `mock/vercel.json` - Vercel routing config
 - `mock/api/index.py` - Vercel entrypoint
+
