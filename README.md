@@ -1,6 +1,6 @@
 ﻿# Mock Interviewer
 
-A no-account mock interview app built with Django.
+A no-account mock interview app.
 
 ## What It Does
 - Runs a 25-question interview session (`/api/start/`, `/api/answer/`).
